@@ -18,10 +18,7 @@ if response.status_code == 200:
 SPOTIFY_HEADER={
     "Authorization": f"Bearer {ACCESS_TOKEN}",
 }
-ACCESS_TOKEN = tokens.get('access_token')
-SPOTIFY_HEADER={
-    "Authorization": f"Bearer {ACCESS_TOKEN}",
-}
+
 
 url="https://api.spotify.com/v1/me"
 user_info=requests.get(url,headers=SPOTIFY_HEADER)
