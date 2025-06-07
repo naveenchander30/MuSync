@@ -10,7 +10,7 @@ def wait_for_callback():
     input("Press Enter after the callback is received...")
 
 wait_for_callback()
-response= requests.get('https://musync-k60r.onrender.com/spotify/callback')
+response= requests.get('https://musync-k60r.onrender.com/spotify/tokens')
 if response.status_code == 200:
     tokens = response.json()
     ACCESS_TOKEN = tokens.get('access_token')

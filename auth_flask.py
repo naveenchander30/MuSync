@@ -54,7 +54,14 @@ def spotify_callback():
                 "refresh_token": refresh_token,
                 "expiry": time.time() + expiry
             }
-        return tokens
+            with open('spotify_tokens.json', 'w') as f:
+                json.dump(tokens, f)
+        return "Authentication successful! You can close this window."
+@app.route('/spotify/tokens', methods=['GET'])
+def get_spotify_tokens():
+    with open('spotify_tokens.json', 'r') as f:
+        tokens = json.load(f)
+    return jsonify(tokens)
 @app.route('/spotify/refresh', methods=['POST'])
 def refresh_spotify_token():
     refresh_token = request.args.get('refresh_token')
