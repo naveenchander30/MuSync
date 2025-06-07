@@ -53,7 +53,7 @@ def spotify_auth():
     params={
         "client_id": CLIENT_ID,
         "response_type": "code",
-        "redirect_uri": "http://127.0.0.1:8080/spotify/callback",
+        "redirect_uri": "https://musync-k60r.onrender.com/spotify/callback",
         "scope": "playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private user-library-read user-library-modify user-read-private user-read-email",
         "state": STATE
     }
@@ -76,7 +76,7 @@ def spotify_callback():
         params = {
             "grant_type": "authorization_code",
             "code": code,
-            "redirect_uri": "http://127.0.0.1:8080/spotify/callback"
+            "redirect_uri": "https://musync-k60r.onrender.com/spotify/callback"
         }
         
         response=requests.post(token_url,headers=headers, data=params)
@@ -93,5 +93,5 @@ def spotify_callback():
                 }, f)
         return jsonify({"message": "Spotify authentication successful", "access_token": access_token}),"You can close this window now."
 
-if __name__ == '__main__':
-    app.run(debug=True, port=8080)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0",debug=True, port=int(os.getenv("PORT", 8080)))
