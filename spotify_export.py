@@ -11,7 +11,7 @@ def wait_for_callback():
     
 wait_for_callback()
 
-response= requests.post('https://musync-k60r.onrender.com/spotify/callback')
+response= requests.get('https://musync-k60r.onrender.com/spotify/callback')
 if response.status_code == 200:
     tokens = response.json()
     ACCESS_TOKEN = tokens.get('access_token')
