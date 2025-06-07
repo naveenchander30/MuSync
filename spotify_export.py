@@ -3,9 +3,6 @@ import requests
 import json
 import webbrowser
 
-CLIENT_ID = os.getenv('CLIENT_ID')
-CLIENT_SECRET = os.getenv('CLIENT_SECRET')
-
 webbrowser.open(f"https://musync-k60r.onrender.com/spotify/login")
 
 def wait_for_callback():
@@ -14,8 +11,13 @@ def wait_for_callback():
     
 wait_for_callback()
 
-with open('tokens.json', 'r') as f:
-    tokens = json.load(f)
+response= requests.post('https://musync-k60r.onrender.com/spotify/callback')
+if response.status_code == 200:
+    tokens = response.json()
+    ACCESS_TOKEN = tokens.get('access_token')
+SPOTIFY_HEADER={
+    "Authorization": f"Bearer {ACCESS_TOKEN}",
+}
 ACCESS_TOKEN = tokens.get('access_token')
 SPOTIFY_HEADER={
     "Authorization": f"Bearer {ACCESS_TOKEN}",
