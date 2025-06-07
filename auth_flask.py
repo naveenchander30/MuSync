@@ -1,9 +1,7 @@
 from flask import Flask, redirect, request, jsonify
 import json,urllib.parse,base64
 import os,requests,time,secrets
-from dotenv import load_dotenv
 
-load_dotenv()  # Load environment variables from .env file
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
 STATE = secrets.token_urlsafe(16)  # Generate a random state token

@@ -1,10 +1,8 @@
-from dotenv import load_dotenv
 import os
 import requests
 import json
 import webbrowser
 
-load_dotenv()  # Load environment variables from .env file
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
 
