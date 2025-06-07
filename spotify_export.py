@@ -6,7 +6,7 @@ import webbrowser
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
 
-webbrowser.open(f"http://127.0.0.1:8080/spotify/login")
+webbrowser.open(f"https://musync-k60r.onrender.com/spotify/login")
 
 def wait_for_callback():
     print("Waiting for Spotify callback...")
