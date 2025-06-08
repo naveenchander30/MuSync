@@ -6,11 +6,7 @@ from google_auth_oauthlib.flow import Flow
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
 STATE = secrets.token_urlsafe(16)  # Generate a random state token
-<<<<<<< HEAD
 os.environ('OAUTHLIB_INSECURE_TRANSPORT') = '1'  # Allow insecure transport for local testing
-=======
-os.environ['OAUTHLIB_INSECURE_TRANSPORT']= "1" # Allow insecure transport for local testing
->>>>>>> c504c14d0e05b80be846c27f926fc54c4e54ca17
 
 SCOPES = [
         "https://www.googleapis.com/auth/youtube",
