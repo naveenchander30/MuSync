@@ -43,7 +43,7 @@ if playlists.status_code == 200:
                 track_type= track.get('track', {}).get('type')
                 track_name=track.get('track', {}).get('name')
                 if track_type== 'track':
-                    track_artists = ", ".join(artist.get('name') for artist in track.get('track', {}).get('artists', []) if artist.get('name'))
+                    track_artists = [artist.get('name') for artist in track.get('track', {}).get('artists', []) if artist.get('name')]
                     playlist_info['tracks'].append({
                         'name': track_name,
                         'artists': track_artists,

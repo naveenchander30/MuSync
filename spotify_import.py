@@ -70,7 +70,8 @@ for playlist in all_playlists:
                 track_uri = None
                 if track_type == 'track' and tracks_data:
                     for item in tracks_data:
-                        if item.get('name') == track_name and all(artist.get('name') in item.get('artists', []) for artist in track_artists):
+                        artists_names = [artist.get('name') for artist in item.get('artists', []) if artist.get('name')]
+                        if item.get('name') == track_name and all(artist in track_artists for artist in artists_names):
                             track_uri = item.get('uri')
                             break
                 elif track_type == 'episode' and episodes_data:
@@ -117,7 +118,8 @@ for playlist in all_playlists:
                     track_uri = None
                     if track_type == 'track' and tracks_data:
                         for item in tracks_data:
-                            if item.get('name') == track_name and all(artist.get('name') in item.get('artists', []) for artist in track_artists):
+                            artists_names = [artist.get('name') for artist in item.get('artists', []) if artist.get('name')]
+                            if item.get('name') == track_name and all(artist in track_artists for artist in artists_names):
                                 track_uri = item.get('uri')
                                 break
                     elif track_type == 'episode' and episodes_data:
@@ -126,5 +128,5 @@ for playlist in all_playlists:
                                 track_uri = item.get('uri')
                                 break
                     add_response = requests.post(add_url, headers=SPOTIFY_HEADER, json=data)
-                    
+                        
                 
