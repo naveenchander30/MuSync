@@ -157,6 +157,6 @@ for playlist in all_playlists:
                             if similarity(item_name, track_name) > 0.8 and similarity(item_show, track_show) > 0.8:
                                 track_uri = item.get('uri')
                                 break
-                    add_response = requests.post(add_url, headers=SPOTIFY_HEADER, json=data)
+                    add_response = requests.post(track_uri, headers=SPOTIFY_HEADER, json=data)
                         
                 

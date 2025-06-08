@@ -15,5 +15,5 @@ if response.status_code == 200:
         json.dump(auth_headers, f)
 
 ytmusic= YTMusic("auth.json")
-playlists = ytmusic.get_account_info()
+playlists = ytmusic.get_library_playlists()
 print(playlists)
