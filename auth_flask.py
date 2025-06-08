@@ -1,4 +1,4 @@
-from flask import Flask, redirect, request, jsonify
+from flask import Flask, redirect, request, jsonify,session
 import json,urllib.parse,base64
 import os,requests,time,secrets
 from google_auth_oauthlib.flow import Flow
@@ -11,7 +11,6 @@ SCOPES = [
         "https://www.googleapis.com/auth/youtube",
         "https://www.googleapis.com/auth/youtube.force-ssl"
     ]
-
 
 app = Flask(__name__)
 app.secret_key=secrets.token_urlsafe(64)
@@ -77,20 +76,20 @@ def ytmusic_login():
     flow = Flow.from_client_secrets_file(
         "client.json",
         scopes=SCOPES,
-        redirect_uri="https://https://musync-k60r.onrender.com/ytmusic/callback"
+        redirect_uri="https://musync-k60r.onrender.com/ytmusic/callback"
     )
     auth_url, state = flow.authorization_url(prompt="consent")
     session["state"] = state
     return redirect(auth_url)
     
-@app.route('ytmusic/callback') 
+@app.route('/ytmusic/callback') 
 def ytmusic_callback():
     state=session['state']
     flow = Flow.from_client_secrets_file(
         "client.json",
         scopes=SCOPES,
         state=state,
-        redirect_uri="https://https://musync-k60r.onrender.com/ytmusic/callback"
+        redirect_uri="https://musync-k60r.onrender.com/ytmusic/callback"
     )
     flow.fetch_token(authorization_response=request.url)
     credentials = flow.credentials
@@ -100,14 +99,14 @@ def ytmusic_callback():
         "X-Goog-AuthUser": "0",
         "x-origin": "https://music.youtube.com"
     }
-    with open("auth.json",'w') as f:
+    with open("yt_auth.json",'w') as f:
         json.dump(auth_headers,f)
     return "Authentication successful! You can close this window."
 
     
 @app.route('/ytmusic/tokens', methods=['GET'])
 def get_ytmusic_tokens():
-    with open("auth.json", "r") as f:
+    with open("yt_auth.json", "r") as f:
         auth_headers = json.load(f)
     return jsonify(auth_headers)
 
