@@ -1,13 +1,20 @@
 from flask import Flask, redirect, request, jsonify
 import json,urllib.parse,base64
 import os,requests,time,secrets
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google_auth_oauthlib.flow import Flow
 
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
 STATE = secrets.token_urlsafe(16)  # Generate a random state token
 
+SCOPES = [
+        "https://www.googleapis.com/auth/youtube",
+        "https://www.googleapis.com/auth/youtube.force-ssl"
+    ]
+
+
 app = Flask(__name__)
+app.secret_key=secrets.token_urlsafe(64)
 
 @app.route('/')
 def index():
@@ -65,27 +72,39 @@ def get_spotify_tokens():
         tokens = json.load(f)
     return jsonify(tokens)
 
-@app.route('/ytmusic/login', methods=['GET']) 
-def ytmusic_auth():
-    SCOPES = [
-        "https://www.googleapis.com/auth/youtube",
-        "https://www.googleapis.com/auth/youtube.force-ssl"
-    ]
+@app.route('/ytmusic/login') 
+def ytmusic_login():
+    flow = Flow.from_client_secrets_file(
+        "client.json",
+        scopes=SCOPES,
+        redirect_uri="https://https://musync-k60r.onrender.com/ytmusic/callback"
+    )
+    auth_url, state = flow.authorization_url(prompt="consent")
+    session["state"] = state
+    return redirect(auth_url)
     
-    flow = InstalledAppFlow.from_client_secrets_file("client.json", SCOPES)
-    credentials = flow.run_local_server(port=0)
-    
+@app.route('ytmusic/callback') 
+def ytmusic_callback():
+    state=session['state']
+    flow = Flow.from_client_secrets_file(
+        "client.json",
+        scopes=SCOPES,
+        state=state,
+        redirect_uri="https://https://musync-k60r.onrender.com/ytmusic/callback"
+    )
+    flow.fetch_token(authorization_response=request.url)
+    credentials = flow.credentials
     auth_headers = {
         "Authorization": f"Bearer {credentials.token}",
         "Content-Type": "application/json",
         "X-Goog-AuthUser": "0",
-        "x-origin": "https://music.youtube.com",
+        "x-origin": "https://music.youtube.com"
     }
-    
-    with open("auth.json", "w") as f:
-        json.dump(auth_headers, f)
-      
+    with open("auth.json",'w') as f:
+        json.dump(auth_headers,f)
     return "Authentication successful! You can close this window."
+
+    
 @app.route('/ytmusic/tokens', methods=['GET'])
 def get_ytmusic_tokens():
     with open("auth.json", "r") as f:
