@@ -1,4 +1,5 @@
 .env
 tokens.json
+client.json
 playlists.json
-Musync.zip
+*.zip

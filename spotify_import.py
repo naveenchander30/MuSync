@@ -50,29 +50,35 @@ for playlist in all_playlists:
         for track in tracks:
             track_type = track.get('type')
             track_name = track.get('name')
-            track_artists = []
-            track_show = ""
             
             if track_type == 'track':
                 track_artists = track.get('artists', [])
-                track_show = ""
             elif track_type == 'episode':
                 track_show = track.get('show', "")
-                track_artists = [""]
             
             url= f"https://api.spotify.com/v1/search"
             params = {
-                'q': f"{track_name} {' '.join(track_artists)} {track_show}",
+                'q': f"{track_name}",
                 'type': track_type,
-                'limit': 1
+                'limit': 10
             }
             search_response = requests.get(url, headers=SPOTIFY_HEADER, params=params)
             if search_response.status_code == 200:
                 search_data = search_response.json()
-                if track_type == 'track':
-                    track_uri = search_data.get('tracks', {}).get('items', [{}])[0].get('uri')
-                elif track_type == 'episode':
-                    track_uri = search_data.get('episodes', {}).get('items', [{}])[0].get('uri')
+                tracks_data= search_data.get('tracks', {}).get('items', [])
+                episodes_data = search_data.get('episodes', {}).get('items', [])
+                track_uri = None
+                if track_type == 'track' and tracks_data:
+                    for item in tracks_data:
+                        if item.get('name') == track_name and all(artist.get('name') in item.get('artists', []) for artist in track_artists):
+                            track_uri = item.get('uri')
+                            break
+                elif track_type == 'episode' and episodes_data:
+                    for item in episodes_data:
+                        if item.get('name') == track_name and item.get('show', {}).get('name') == track_show:
+                            track_uri = item.get('uri')
+                            break
+                    
                 if track_uri and track_uri not in existing_track_uris:
                     add_url = f"https://api.spotify.com/v1/playlists/{existing_playlist_names[playlist_name]}/tracks"
                     data = {
@@ -91,34 +97,34 @@ for playlist in all_playlists:
             for track in tracks:
                 track_type = track.get('type')
                 track_name = track.get('name')
-                track_artists = []
-                track_show = ""
                 
                 if track_type == 'track':
                     track_artists = track.get('artists', [])
-                    track_show = ""
                 elif track_type == 'episode':
                     track_show = track.get('show', "")
-                    track_artists = [""]
                 
                 url= f"https://api.spotify.com/v1/search"
                 params = {
-                    'q': f"{track_name} {' '.join(track_artists)} {track_show}",
+                    'q': f"{track_name}",
                     'type': track_type,
-                    'limit': 1
+                    'limit': 10
                 }
                 search_response = requests.get(url, headers=SPOTIFY_HEADER, params=params)
                 if search_response.status_code == 200:
                     search_data = search_response.json()
-                    if track_type == 'track':
-                        track_uri = search_data.get('tracks', {}).get('items', [{}])[0].get('uri')
-                    elif track_type == 'episode':
-                        track_uri = search_data.get('episodes', {}).get('items', [{}])[0].get('uri')
-                    if track_uri:
-                        add_url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
-                        data = {
-                            'uris': [track_uri]
-                        }
-                        add_response = requests.post(add_url, headers=SPOTIFY_HEADER, json=data)
+                    tracks_data= search_data.get('tracks', {}).get('items', [])
+                    episodes_data = search_data.get('episodes', {}).get('items', [])
+                    track_uri = None
+                    if track_type == 'track' and tracks_data:
+                        for item in tracks_data:
+                            if item.get('name') == track_name and all(artist.get('name') in item.get('artists', []) for artist in track_artists):
+                                track_uri = item.get('uri')
+                                break
+                    elif track_type == 'episode' and episodes_data:
+                        for item in episodes_data:
+                            if item.get('name') == track_name and item.get('show', {}).get('name') == track_show:
+                                track_uri = item.get('uri')
+                                break
+                    add_response = requests.post(add_url, headers=SPOTIFY_HEADER, json=data)
                     
                 
