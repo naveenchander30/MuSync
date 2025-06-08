@@ -2,6 +2,10 @@ import os
 import requests
 import json
 import webbrowser
+from difflib import SequenceMatcher
+
+def similarity(a, b):
+    return SequenceMatcher(None, a.lower(), b.lower()).ratio()
 
 webbrowser.open(f"https://musync-k60r.onrender.com/spotify/login")
 
@@ -68,15 +72,28 @@ for playlist in all_playlists:
                 tracks_data= search_data.get('tracks', {}).get('items', [])
                 episodes_data = search_data.get('episodes', {}).get('items', [])
                 track_uri = None
+                best_score = 0
+                best_uri = None
                 if track_type == 'track' and tracks_data:
                     for item in tracks_data:
-                        artists_names = [artist.get('name') for artist in item.get('artists', []) if artist.get('name')]
-                        if item.get('name') == track_name and all(artist in track_artists for artist in artists_names):
-                            track_uri = item.get('uri')
-                            break
+                        item_name = item.get('name', '')
+                        name_score = similarity(item_name, track_name)
+
+                        item_artists = [artist.get('name', '') for artist in item.get('artists', [])]
+                        matching_artists = sum(1 for a in item_artists if a.lower() in [ta.lower() for ta in track_artists])
+                        total_score = name_score + matching_artists
+
+                        if total_score > best_score:
+                            best_score = total_score
+                            best_uri = item.get('uri')
+
+                    track_uri = best_uri
+
                 elif track_type == 'episode' and episodes_data:
                     for item in episodes_data:
-                        if item.get('name') == track_name and item.get('show', {}).get('name') == track_show:
+                        item_name = item.get('name', '')
+                        item_show = item.get('show', {}).get('name', '')
+                        if similarity(item_name, track_name) > 0.8 and similarity(item_show, track_show) > 0.8:
                             track_uri = item.get('uri')
                             break
                     
@@ -116,15 +133,28 @@ for playlist in all_playlists:
                     tracks_data= search_data.get('tracks', {}).get('items', [])
                     episodes_data = search_data.get('episodes', {}).get('items', [])
                     track_uri = None
+                    best_score = 0
+                    best_uri = None
                     if track_type == 'track' and tracks_data:
                         for item in tracks_data:
-                            artists_names = [artist.get('name') for artist in item.get('artists', []) if artist.get('name')]
-                            if item.get('name') == track_name and all(artist in track_artists for artist in artists_names):
-                                track_uri = item.get('uri')
-                                break
+                            item_name = item.get('name', '')
+                            name_score = similarity(item_name, track_name)
+
+                            item_artists = [artist.get('name', '') for artist in item.get('artists', [])]
+                            matching_artists = sum(1 for a in item_artists if a.lower() in [ta.lower() for ta in track_artists])
+                            total_score = name_score + matching_artists
+
+                            if total_score > best_score:
+                                best_score = total_score
+                                best_uri = item.get('uri')
+
+                        track_uri = best_uri
+
                     elif track_type == 'episode' and episodes_data:
                         for item in episodes_data:
-                            if item.get('name') == track_name and item.get('show', {}).get('name') == track_show:
+                            item_name = item.get('name', '')
+                            item_show = item.get('show', {}).get('name', '')
+                            if similarity(item_name, track_name) > 0.8 and similarity(item_show, track_show) > 0.8:
                                 track_uri = item.get('uri')
                                 break
                     add_response = requests.post(add_url, headers=SPOTIFY_HEADER, json=data)
