@@ -19,7 +19,6 @@ SPOTIFY_HEADER={
     "Authorization": f"Bearer {ACCESS_TOKEN}",
 }
 
-
 url="https://api.spotify.com/v1/me"
 user_info=requests.get(url,headers=SPOTIFY_HEADER)
 if user_info.status_code == 200:
@@ -53,6 +52,31 @@ if playlists.status_code == 200:
         all_playlists.append(playlist_info)
     with open('playlists.json', 'w',encoding='utf-8') as f:
         json.dump(all_playlists, f, ensure_ascii=False,indent=4)
+
+url=f"https://api.spotify.com/v1/me/tracks?limit=50"
+liked_tracks = []
+while url:
+    response = requests.get(url, headers=SPOTIFY_HEADER)
+    if response.status_code == 200:
+        data = response.json()
+        items = data.get('items', [])
+        for item in items:
+            track = item.get('track', {})
+            if track:
+                track_name = track.get('name')
+                track_type = track.get('type')
+                if track_type != 'track':
+                    continue
+                track_artists = [artist.get('name') for artist in track.get('artists', []) if artist.get('name')]
+                liked_tracks.append({
+                    'name': track_name,
+                    'artists': track_artists,
+                })
+        url = data.get('next')
+
+with open('liked.json', 'w', encoding='utf-8') as f:
+    json.dump(liked_tracks, f, ensure_ascii=False, indent=4)
+
                 
             
     
