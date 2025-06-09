@@ -1,6 +1,3 @@
-.env
-tokens.json
-client.json
-auth.json
-playlists.json
+*.env
+*.json
 *.zip

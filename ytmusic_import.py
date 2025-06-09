@@ -46,7 +46,9 @@ for playlist in all_playlists:
         playlist_id = ytmusic.create_playlist(playlist_name,"")
     else:
         playlist_id = playlist_ids[playlist_name]
+        
     tracks = playlist.get('tracks', [])
+    
     for track in tracks:
         track_name = track.get('name')
         track_artists = track.get('artists', [])
@@ -58,7 +60,10 @@ for playlist in all_playlists:
             continue
         best_uri = best_match(track_name, track_artists, search_results)
         if best_uri:
-            ytmusic.add_playlist_items(playlist_id, [best_uri])
+            try:
+                ytmusic.add_playlist_items(playlist_id, [best_uri])
+            except:
+                pass
 
 with open('liked.json', 'r', encoding='utf-8') as f:
     liked_tracks = json.load(f)
@@ -73,5 +78,9 @@ for track in liked_tracks:
     if not search_results:
         continue
     best_uri = best_match(track_name, track_artists, search_results)
-    ytmusic.rate_song(best_uri, 'LIKE')
+    if best_uri:
+        try:
+            ytmusic.rate_song(best_uri, 'LIKE')
+        except:
+            pass
         
