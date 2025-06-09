@@ -52,51 +52,35 @@ for playlist in all_playlists:
                 next_url = existing_tracks.json().get('next')
                 url = next_url if next_url else None
         for track in tracks:
-            track_type = track.get('type')
             track_name = track.get('name')
-            
-            if track_type == 'track':
-                track_artists = track.get('artists', [])
-            elif track_type == 'episode':
-                track_show = track.get('show', "")
-            
+            track_artists = track.get('artists', [])
             url= f"https://api.spotify.com/v1/search"
             params = {
                 'q': f"{track_name}",
-                'type': track_type,
+                'type': 'track',
                 'limit': 10
             }
             search_response = requests.get(url, headers=SPOTIFY_HEADER, params=params)
             if search_response.status_code == 200:
                 search_data = search_response.json()
                 tracks_data= search_data.get('tracks', {}).get('items', [])
-                episodes_data = search_data.get('episodes', {}).get('items', [])
                 track_uri = None
                 best_score = 0
                 best_uri = None
-                if track_type == 'track' and tracks_data:
-                    for item in tracks_data:
-                        item_name = item.get('name', '')
-                        name_score = similarity(item_name, track_name)
+                for item in tracks_data:
+                    item_name = item.get('name', '')
+                    name_score = similarity(item_name, track_name)
 
-                        item_artists = [artist.get('name', '') for artist in item.get('artists', [])]
-                        matching_artists = sum(1 for a in item_artists if a.lower() in [ta.lower() for ta in track_artists])
-                        total_score = name_score + matching_artists
+                    item_artists = [artist.get('name', '') for artist in item.get('artists', [])]
+                    matching_artists = sum(1 for a in item_artists if a.lower() in [ta.lower() for ta in track_artists])
+                    total_score = name_score*2 + matching_artists
 
-                        if total_score > best_score:
-                            best_score = total_score
-                            best_uri = item.get('uri')
+                    if total_score > best_score:
+                        best_score = total_score
+                        best_uri = item.get('uri')
 
-                    track_uri = best_uri
-
-                elif track_type == 'episode' and episodes_data:
-                    for item in episodes_data:
-                        item_name = item.get('name', '')
-                        item_show = item.get('show', {}).get('name', '')
-                        if similarity(item_name, track_name) > 0.8 and similarity(item_show, track_show) > 0.8:
-                            track_uri = item.get('uri')
-                            break
-                    
+                track_uri = best_uri
+                
                 if track_uri and track_uri not in existing_track_uris:
                     add_url = f"https://api.spotify.com/v1/playlists/{existing_playlist_names[playlist_name]}/tracks"
                     data = {
@@ -113,50 +97,38 @@ for playlist in all_playlists:
         if response.status_code == 201:
             playlist_id = response.json().get('id')
             for track in tracks:
-                track_type = track.get('type')
                 track_name = track.get('name')
-                
-                if track_type == 'track':
-                    track_artists = track.get('artists', [])
-                elif track_type == 'episode':
-                    track_show = track.get('show', "")
-                
+                track_artists = track.get('artists', [])
                 url= f"https://api.spotify.com/v1/search"
                 params = {
                     'q': f"{track_name}",
-                    'type': track_type,
+                    'type': 'track',
                     'limit': 10
                 }
                 search_response = requests.get(url, headers=SPOTIFY_HEADER, params=params)
                 if search_response.status_code == 200:
                     search_data = search_response.json()
                     tracks_data= search_data.get('tracks', {}).get('items', [])
-                    episodes_data = search_data.get('episodes', {}).get('items', [])
                     track_uri = None
                     best_score = 0
                     best_uri = None
-                    if track_type == 'track' and tracks_data:
-                        for item in tracks_data:
-                            item_name = item.get('name', '')
-                            name_score = similarity(item_name, track_name)
+                    for item in tracks_data:
+                        item_name = item.get('name', '')
+                        name_score = similarity(item_name, track_name)
 
-                            item_artists = [artist.get('name', '') for artist in item.get('artists', [])]
-                            matching_artists = sum(1 for a in item_artists if a.lower() in [ta.lower() for ta in track_artists])
-                            total_score = name_score + matching_artists
+                        item_artists = [artist.get('name', '') for artist in item.get('artists', [])]
+                        matching_artists = sum(1 for a in item_artists if a.lower() in [ta.lower() for ta in track_artists])
+                        total_score = name_score*2 + matching_artists
 
-                            if total_score > best_score:
-                                best_score = total_score
-                                best_uri = item.get('uri')
+                        if total_score > best_score:
+                            best_score = total_score
+                            best_uri = item.get('uri')
 
-                        track_uri = best_uri
-
-                    elif track_type == 'episode' and episodes_data:
-                        for item in episodes_data:
-                            item_name = item.get('name', '')
-                            item_show = item.get('show', {}).get('name', '')
-                            if similarity(item_name, track_name) > 0.8 and similarity(item_show, track_show) > 0.8:
-                                track_uri = item.get('uri')
-                                break
-                    add_response = requests.post(track_uri, headers=SPOTIFY_HEADER, json=data)
+                    track_uri = best_uri
+                    if track_uri:
+                        add_url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
+                        data = {
+                            'uris': [track_uri]
+                        }
+                        add_response = requests.post(add_url, headers=SPOTIFY_HEADER, json=data)
                         
-                

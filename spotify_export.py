@@ -47,15 +47,9 @@ if playlists.status_code == 200:
                     playlist_info['tracks'].append({
                         'name': track_name,
                         'artists': track_artists,
-                        'type': track_type
                     })
-                elif track_type == 'episode':
-                    track_show= track.get('track', {}).get('show', {}).get('name')
-                    playlist_info['tracks'].append({
-                        'name': track_name,
-                        'show': track_show,
-                        'type': track_type
-                    })
+                else:
+                    continue
         all_playlists.append(playlist_info)
     with open('playlists.json', 'w',encoding='utf-8') as f:
         json.dump(all_playlists, f, ensure_ascii=False,indent=4)

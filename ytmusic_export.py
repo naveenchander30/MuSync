@@ -15,5 +15,14 @@ if response.status_code == 200:
         json.dump(auth_headers, f)
 
 ytmusic= YTMusic("auth.json")
-playlists = ytmusic.get_library_playlists()
-print(playlists)
+library_playlists = ytmusic.get_library_playlists()
+playlist_ids={playlist.get('playlistId'):playlist.get('title') for playlist in library_playlists}
+all_playlists = []
+for playlist_id, playlist_name in playlist_ids.items():
+    playlist_info = {
+        'name': playlist_name,
+        'tracks': [],
+    }
+    playlist_details=ytmusic.get_playlist(playlist_id,limit=None)
+    for track in playlist_details.get('tracks', []):
+        track
