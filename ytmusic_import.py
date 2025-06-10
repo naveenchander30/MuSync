@@ -79,15 +79,14 @@ for i, playlist in enumerate(all_playlists, 1):
     else:
         print(f"Playlist already exists, adding tracks")
         playlist_id = playlist_ids[playlist_name]
+        try:
+            existing_tracks = ytmusic.get_playlist(playlist_id, limit=None)
+            existing_track_ids = [track.get('videoId') for track in existing_tracks.get('tracks', []) if track.get('videoId')]
+            print(f"Found {len(existing_track_ids)} existing tracks in playlist")
+        except Exception as e:
+            print(f"Error getting existing tracks: {str(e)}")
+            existing_track_ids = []
     
-    # Get existing tracks to avoid duplicates
-    try:
-        existing_tracks = ytmusic.get_playlist(playlist_id, limit=None)
-        existing_track_ids = [track.get('videoId') for track in existing_tracks.get('tracks', []) if track.get('videoId')]
-        print(f"Found {len(existing_track_ids)} existing tracks in playlist")
-    except Exception as e:
-        print(f"Error getting existing tracks: {str(e)}")
-        existing_track_ids = []
     
     for track in tracks:
         track_name = track.get('name')
