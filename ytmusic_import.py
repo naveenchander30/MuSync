@@ -73,6 +73,7 @@ for i, playlist in enumerate(all_playlists, 1):
         try:
             playlist_id = ytmusic.create_playlist(clean_playlist_name(playlist_name), "")
             print(f"Created playlist with ID: {playlist_id}")
+            existing_track_ids = []
         except Exception as e:
             print(f"Error creating playlist: {str(e)}")
             continue
