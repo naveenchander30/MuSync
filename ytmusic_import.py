@@ -3,7 +3,10 @@ import json, requests
 import webbrowser
 import time
 from difflib import SequenceMatcher
-from ytmusicapi.exceptions import YTMusicServerError
+import re
+
+def clean_playlist_name(name):
+    return re.sub(r'[<>:"/\\|?*]', '', name)
 
 def similarity(a, b):
     return SequenceMatcher(None, a.lower(), b.lower()).ratio()
@@ -68,7 +71,7 @@ for i, playlist in enumerate(all_playlists, 1):
     if playlist_name not in playlist_ids:
         print(f"Creating new playlist: {playlist_name}")
         try:
-            playlist_id = ytmusic.create_playlist(playlist_name, "")
+            playlist_id = ytmusic.create_playlist(clean_playlist_name(playlist_name), "")
             print(f"Created playlist with ID: {playlist_id}")
         except Exception as e:
             print(f"Error creating playlist: {str(e)}")
@@ -121,11 +124,6 @@ for i, playlist in enumerate(all_playlists, 1):
         try:
             ytmusic.add_playlist_items(playlist_id, [best_uri])
             added_tracks += 1
-        except YTMusicServerError as e:
-            if "already exists" in str(e).lower():
-                skipped_tracks += 1
-            else:
-                print(f"  ERROR ADDING: \"{track_name}\" by {artists_str} - {str(e)}")
         except Exception as e:
             print(f"  ERROR ADDING: \"{track_name}\" by {artists_str} - {str(e)}")
 
@@ -140,9 +138,6 @@ liked_skipped = 0
 liked_not_found = 0
 
 for i, track in enumerate(liked_tracks, 1):
-    if i % 20 == 0:
-        print(f"Processed {i}/{len(liked_tracks)} liked songs")
-        
     track_name = track.get('name')
     track_artists = track.get('artists', [])
     artists_str = ", ".join(track_artists) if track_artists else "Unknown"
@@ -172,13 +167,9 @@ for i, track in enumerate(liked_tracks, 1):
     try:
         ytmusic.rate_song(best_uri, 'LIKE')
         liked_added += 1
-    except YTMusicServerError as e:
-        if "already" in str(e).lower():
-            liked_skipped += 1
-        else:
-            print(f"  ERROR LIKING: \"{track_name}\" by {artists_str} - {str(e)}")
     except Exception as e:
         print(f"  ERROR LIKING: \"{track_name}\" by {artists_str} - {str(e)}")
+        tracl_skipped += 1
 
 # Print summary
 end_time = time.time()
