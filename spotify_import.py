@@ -3,30 +3,29 @@ import requests
 import json
 import webbrowser
 import time
-from difflib import SequenceMatcher
-
-def similarity(a, b):
-    return SequenceMatcher(None, a.lower(), b.lower()).ratio()
+from rapidfuzz.fuzz import ratio, partial_ratio, token_sort_ratio
 
 def find_best_spotify_track_uri(track_name, track_artists, headers):
     url = "https://api.spotify.com/v1/search"
     params = {
         'q': f"{track_name}",
         'type': 'track',
-        'limit': 10
+        'limit': 3
     }
     search_response = requests.get(url, headers=headers, params=params)
     if search_response.status_code == 200:
         search_data = search_response.json()
         tracks_data = search_data.get('tracks', {}).get('items', [])
+        track_name = track_name.lower()
+        track_artists = [artist.lower() for artist in track_artists]
         best_score = 0
         best_uri = None
         for item in tracks_data:
-            item_name = item.get('name', '')
-            name_score = similarity(item_name, track_name)
-            item_artists = [artist.get('name', '') for artist in item.get('artists', [])]
-            matching_artists = sum(1 for a in item_artists if a.lower() in [ta.lower() for ta in track_artists])
-            total_score = name_score * 2 + matching_artists
+            item_name = item.get('name', '').lower()
+            name_score = token_sort_ratio(item_name, track_name) * 1.5
+            item_artists = [artist.get('name', '').lower() for artist in item.get('artists', [])]
+            artist_score = sum(partial_ratio(a, ta) > 80 for a in item_artists for ta in track_artists) * 10
+            total_score = name_score + artist_score
             if total_score > best_score:
                 best_score = total_score
                 best_uri = item.get('uri')

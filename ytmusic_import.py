@@ -2,24 +2,23 @@ from ytmusicapi import YTMusic
 import json, requests
 import webbrowser
 import time
-from difflib import SequenceMatcher
+from rapidfuzz.fuzz import ratio, partial_ratio, token_sort_ratio
 import re
 
 def clean_playlist_name(name):
     return re.sub(r'[<>:"/\\|?*]', '', name)
 
-def similarity(a, b):
-    return SequenceMatcher(None, a.lower(), b.lower()).ratio()
-
 def best_match(track_name, track_artists, search_results):
     best_score = 0
     best_uri = None
+    track_name = track_name.lower()
+    track_artists=[artist.lower() for artist in track_artists]
     for result in search_results:
-        item_name = result.get('title', '')
-        name_score = similarity(item_name, track_name) * 2
-        item_artists = [artist.get('name', '') for artist in result.get('artists', [])]
-        matching_artists = sum(1 for a in item_artists if a.lower() in [ta.lower() for ta in track_artists])
-        total_score = name_score + matching_artists
+        item_name = result.get('title', '').lower()
+        item_artists = [artist.get('name', '').lower() for artist in result.get('artists', [])]
+        name_score = token_sort_ratio(item_name, track_name)*1.5
+        artist_score=sum(partial_ratio(a,ta)>80 for a in item_artists for ta in track_artists)*10
+        total_score = name_score + artist_score
         if total_score > best_score:
             best_score = total_score
             best_uri = result.get('videoId')
@@ -101,7 +100,7 @@ for i, playlist in enumerate(all_playlists, 1):
             
         search_query = f"{track_name} {track_artists[0]}"
         try:
-            search_results = ytmusic.search(search_query, filter='songs', limit=10)
+            search_results = ytmusic.search(search_query, filter='songs', limit=3)
         except Exception as e:
             print(f"  ERROR SEARCHING: \"{track_name}\" by {artists_str} - {str(e)}")
             continue
@@ -148,7 +147,7 @@ for i, track in enumerate(liked_tracks, 1):
         
     search_query = f"{track_name} {track_artists[0]}"
     try:
-        search_results = ytmusic.search(search_query, filter='songs', limit=10)
+        search_results = ytmusic.search(search_query, filter='songs', limit=3)
     except Exception as e:
         print(f"  ERROR SEARCHING: \"{track_name}\" by {artists_str} - {str(e)}")
         continue
