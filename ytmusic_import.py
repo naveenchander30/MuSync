@@ -43,12 +43,45 @@ else:
     print(f"Error getting authentication tokens: {response.status_code}")
     exit(1)
 
+def refresh_token():
+    response = requests.get('https://musync-k60r.onrender.com/ytmusic/tokens')
+    if response.status_code == 200:
+        auth_headers = response.json()
+        with open("auth.json", 'w') as f:
+            json.dump(auth_headers, f)
+        return YTMusic("auth.json")
+    else:
+        print(f"Error getting authentication tokens: {response.status_code}")
+        return None
+
+# Function to handle API calls with timeout/token expiration detection
+def safe_api_call(func, *args, **kwargs):
+    max_retries = 2
+    for attempt in range(max_retries):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            error_msg = str(e).lower()
+            if any(err in error_msg for err in ['unauthorized', 'forbidden', 'token', 'expired', 'timeout', '401', '403']):
+                if attempt < max_retries - 1:
+                    global ytmusic
+                    new_ytmusic = refresh_token()
+                    if new_ytmusic:
+                        ytmusic = new_ytmusic
+                    else:
+                        raise Exception("Failed to refresh token")
+                else:
+                    raise Exception("Maximum retry attempts reached")
+            else:
+                # If it's not a token-related issue, re-raise the exception
+                raise e
+
 print("Initializing YouTube Music API...")
 ytmusic = YTMusic("auth.json")
 start_time = time.time()
 
 print("Getting library playlists...")
-library_playlists = ytmusic.get_library_playlists()
+library_playlists = safe_api_call(ytmusic.get_library_playlists)
 playlist_ids = {playlist.get('title'): playlist.get('playlistId') for playlist in library_playlists}
 print(f"Found {len(playlist_ids)} existing playlists")
 
@@ -70,7 +103,7 @@ for i, playlist in enumerate(all_playlists, 1):
     if playlist_name not in playlist_ids:
         print(f"Creating new playlist: {playlist_name}")
         try:
-            playlist_id = ytmusic.create_playlist(clean_playlist_name(playlist_name), "")
+            playlist_id = safe_api_call(ytmusic.create_playlist, clean_playlist_name(playlist_name), "")
             print(f"Created playlist with ID: {playlist_id}")
             existing_track_ids = []
         except Exception as e:
@@ -80,7 +113,7 @@ for i, playlist in enumerate(all_playlists, 1):
         print(f"Playlist already exists, adding tracks")
         playlist_id = playlist_ids[playlist_name]
         try:
-            existing_tracks = ytmusic.get_playlist(playlist_id, limit=None)
+            existing_tracks = safe_api_call(ytmusic.get_playlist, playlist_id, limit=None)
             existing_track_ids = [track.get('videoId') for track in existing_tracks.get('tracks', []) if track.get('videoId')]
             print(f"Found {len(existing_track_ids)} existing tracks in playlist")
         except Exception as e:
@@ -100,7 +133,7 @@ for i, playlist in enumerate(all_playlists, 1):
             
         search_query = f"{track_name} {track_artists[0]}"
         try:
-            search_results = ytmusic.search(search_query, filter='songs', limit=3)
+            search_results = safe_api_call(ytmusic.search, search_query, filter='songs', limit=3)
         except Exception as e:
             print(f"  ERROR SEARCHING: \"{track_name}\" by {artists_str} - {str(e)}")
             continue
@@ -121,7 +154,7 @@ for i, playlist in enumerate(all_playlists, 1):
             continue
             
         try:
-            ytmusic.add_playlist_items(playlist_id, [best_uri])
+            safe_api_call(ytmusic.add_playlist_items, playlist_id, [best_uri])
             added_tracks += 1
         except Exception as e:
             print(f"  ERROR ADDING: \"{track_name}\" by {artists_str} - {str(e)}")
@@ -147,7 +180,7 @@ for i, track in enumerate(liked_tracks, 1):
         
     search_query = f"{track_name} {track_artists[0]}"
     try:
-        search_results = ytmusic.search(search_query, filter='songs', limit=3)
+        search_results = safe_api_call(ytmusic.search, search_query, filter='songs', limit=3)
     except Exception as e:
         print(f"  ERROR SEARCHING: \"{track_name}\" by {artists_str} - {str(e)}")
         continue
@@ -164,11 +197,11 @@ for i, track in enumerate(liked_tracks, 1):
         continue
         
     try:
-        ytmusic.rate_song(best_uri, 'LIKE')
+        safe_api_call(ytmusic.rate_song, best_uri, 'LIKE')
         liked_added += 1
     except Exception as e:
         print(f"  ERROR LIKING: \"{track_name}\" by {artists_str} - {str(e)}")
-        tracl_skipped += 1
+        liked_skipped += 1  # Fixed the typo in variable name from 'tracl_skipped'
 
 # Print summary
 end_time = time.time()

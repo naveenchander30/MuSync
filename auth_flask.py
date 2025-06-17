@@ -2,6 +2,8 @@ from flask import Flask, redirect, request, jsonify,session
 import json,urllib.parse,base64
 import os,requests,time,secrets
 from google_auth_oauthlib.flow import Flow
+import pickle
+from google.auth.transport.requests import Request
 
 CLIENT_ID = os.getenv('CLIENT_ID')
 CLIENT_SECRET = os.getenv('CLIENT_SECRET')
@@ -96,21 +98,25 @@ def ytmusic_callback():
     )
     flow.fetch_token(authorization_response=request.url)
     credentials = flow.credentials
+    with open("yt_credentials.json",'wb') as f:
+        pickle.dump(credentials,f)
+    return "Authentication successful! You can close this window."
+
+    
+@app.route('/ytmusic/tokens', methods=['GET'])
+def get_ytmusic_tokens():
+    with open("yt_credentials.json", "rb") as f:
+        credentials = pickle.load(f)
+    if credentials.expired and credentials.refresh_token:
+        credentials.refresh(Request())
+        with open("yt_credentials.json", "wb") as f:
+            pickle.dump(credentials, f)
     auth_headers = {
         "Authorization": f"Bearer {credentials.token}",
         "Content-Type": "application/json",
         "X-Goog-AuthUser": "0",
         "x-origin": "https://music.youtube.com"
     }
-    with open("yt_auth.json",'w') as f:
-        json.dump(auth_headers,f)
-    return "Authentication successful! You can close this window."
-
-    
-@app.route('/ytmusic/tokens', methods=['GET'])
-def get_ytmusic_tokens():
-    with open("yt_auth.json", "r") as f:
-        auth_headers = json.load(f)
     return jsonify(auth_headers)
 
 if __name__ == "__main__":
