@@ -25,7 +25,7 @@ When prompted, simply follow the authentication instructions in your browser. No
 
 1. **Clone the repository:**
     ```sh
-    git clone https://github.com/yourusername/musync.git
+    git clone https://github.com/naveenchander30/musync.git
     cd musync
     ```
 
