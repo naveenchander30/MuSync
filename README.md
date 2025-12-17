@@ -10,11 +10,13 @@ This repository represents an incremental evolution of an already working system
 ## Motivation
 
 Most playlist migration tools:
+
 - Break mid-run due to expired OAuth tokens
 - Silently skip tracks without explaining why
 - Provide little visibility into what actually happened during a sync
 
 MuSync was built to address these issues by:
+
 - Treating authentication as a first-class system component
 - Making failures explicit and inspectable
 - Designing for long-running syncs from the beginning
@@ -49,6 +51,7 @@ Spotify / YouTube Music APIs
 Authentication and token lifecycle management are isolated in a **dedicated auth service**, while all import/export logic runs client-side.
 
 This separation:
+
 - Prevents token-expiry failures during long runs
 - Avoids duplicating refresh logic across scripts
 - Keeps sensitive credentials out of the main application
@@ -83,11 +86,13 @@ Music platforms often represent the same track with slightly different metadata 
 ### Matching Pipeline
 
 1. **Normalization**
+
    - Unicode normalization
    - Removal of punctuation and parenthetical tags
    - Stripping of common terms such as `feat.`, `ft.`, `remastered`, `live`
 
 2. **Scoring**
+
    - Fuzzy title similarity (token-based)
    - Weighted artist overlap
    - Penalty for excessively long or noisy titles
