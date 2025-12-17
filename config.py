@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Auth server configuration
-AUTH_SERVER = os.getenv("MUSYNC_AUTH_SERVER", "http://localhost:8080")
+AUTH_SERVER = os.getenv("MUSYNC_AUTH_SERVER", "https://musync-k60r.onrender.com")
 API_KEY = os.getenv("MUSYNC_API_KEY", "")
 
 # Spotify OAuth credentials
@@ -13,7 +13,7 @@ CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 
 # Auth server base URL (for OAuth redirects)
-AUTH_BASE_URL = os.getenv("AUTH_BASE_URL", "http://localhost:8080")
+AUTH_BASE_URL = os.getenv("AUTH_BASE_URL", "https://musync-k60r.onrender.com")
 
 # Google OAuth client file path
 GOOGLE_OAUTH_CLIENT_FILE = os.getenv("GOOGLE_OAUTH_CLIENT_FILE", "client.json")

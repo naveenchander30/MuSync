@@ -134,5 +134,17 @@ def ytmusic_token():
         "x-origin": "https://music.youtube.com"
     })
 
+@app.route("/health")
+def health_check():
+    """Health check endpoint for Docker and monitoring"""
+    return jsonify({
+        "status": "healthy",
+        "service": "musync-auth-server",
+        "version": "1.0.0"
+    }), 200
+
 if __name__ == "__main__":
-    app.run(port=8080, debug=True)
+    # Run with production-ready settings
+    port = int(os.getenv("PORT", 8080))
+    debug = os.getenv("FLASK_ENV", "production") != "production"
+    app.run(host="0.0.0.0", port=port, debug=debug)
