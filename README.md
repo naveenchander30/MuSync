@@ -34,14 +34,15 @@ MuSync was built to address these issues by:
 
 ## High-Level Architecture
 
+```
 GUI / Import–Export Logic
-|
-v
+          |
+          v
 Auth Server (OAuth + Refresh)
-|
-v
+          |
+          v
 Spotify / YouTube Music APIs
-
+```
 
 ### Core Design Principle
 
@@ -126,15 +127,16 @@ MuSync includes a lightweight **Tkinter-based GUI** to monitor sync operations.
 
 ## Project Structure
 
+```
 musync/
-├── auth/ # OAuth server and token storage
-├── clients/ # Spotify and YTMusic API wrappers
-├── matching/ # Track normalization and scoring
-├── sync/ # Import / export logic
-├── gui/ # Tkinter GUI
-├── cli.py # Optional CLI entry point
-└── requirements.txt
-
+├── auth/              # OAuth server and token storage
+├── clients/           # Spotify and YTMusic API wrappers
+├── matching/          # Track normalization and scoring
+├── sync/              # Import / export logic
+├── gui/               # Tkinter GUI
+├── config.py          # Configuration management
+└── requirements.txt   # Python dependencies
+```
 
 Each directory has a single, clearly defined responsibility.
 
@@ -162,3 +164,82 @@ AUTH_BASE_URL=
 
 # Google / YouTube Music OAuth config file
 GOOGLE_OAUTH_CLIENT_FILE=
+```
+
+Copy `.env.example` to `.env` and populate it with your own credentials.
+
+---
+
+## Running the Project
+
+### 1. Start the Authentication Server
+
+```bash
+cd auth
+python server.py
+```
+
+### 2. Run the GUI
+
+```bash
+python gui/app.py
+```
+
+---
+
+## Remote Auth Server Deployment (Optional)
+
+The auth server can be hosted remotely (e.g., on a VPS):
+
+- Served over HTTPS behind Nginx
+- OAuth redirect URIs updated to the public domain
+- Secrets provided via environment variables
+- Optional API key protection for token endpoints
+
+This allows clients to remain stateless while keeping refresh tokens centralized and secure.
+
+---
+
+## Security Considerations (Quantified)
+
+- Refresh tokens never leave the auth server
+- Clients only receive short-lived access tokens
+- Optional API key validation for auth endpoints
+- No user data stored beyond local JSON exports
+
+### Impact
+
+- Reduced credential exposure surface to one isolated service
+- Prevented accidental token leakage across client scripts
+- Simplified OAuth credential rotation and revocation
+
+---
+
+## Known Limitations
+
+- Matching is heuristic-based and may miss rare edge cases
+- GUI is intentionally minimal
+- No database backend (by design)
+
+These tradeoffs keep the project focused, understandable, and easy to audit.
+
+---
+
+## Why This Project Exists
+
+This project was built to explore and demonstrate:
+
+- OAuth token lifecycle management in real-world conditions
+- Designing systems that remain reliable during long-running operations
+- Making failures visible and explainable
+- Incrementally improving a working system rather than rewriting it
+
+---
+
+## Future Improvements
+
+- Dry-run mode for imports
+- Exportable failure reports
+- Batched API writes for faster imports
+- Additional music platforms
+- Optional persistence layer for sync history
