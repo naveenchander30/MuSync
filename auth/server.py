@@ -3,14 +3,22 @@ import os, time, base64, secrets, requests, pickle
 from urllib.parse import urlencode
 from google_auth_oauthlib.flow import Flow
 from google.auth.transport.requests import Request
-from .token_store import JSONTokenStore
+import sys
+from pathlib import Path
+
+# Add parent directory to path for imports when running standalone
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from auth.token_store import JSONTokenStore
+import config
 
 app = Flask(__name__)
 app.secret_key = secrets.token_urlsafe(64)
 store = JSONTokenStore()
 
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+CLIENT_ID = config.CLIENT_ID
+CLIENT_SECRET = config.CLIENT_SECRET
+GOOGLE_OAUTH_CLIENT_FILE = config.GOOGLE_OAUTH_CLIENT_FILE
 
 SPOTIFY_SCOPES = (
     "playlist-read-private playlist-read-collaborative "
@@ -92,7 +100,7 @@ def spotify_token():
 @app.route("/ytmusic/login")
 def ytmusic_login():
     flow = Flow.from_client_secrets_file(
-        "client.json",
+        GOOGLE_OAUTH_CLIENT_FILE,
         scopes=YT_SCOPES,
         redirect_uri=request.host_url + "ytmusic/callback"
     )
@@ -103,7 +111,7 @@ def ytmusic_login():
 @app.route("/ytmusic/callback")
 def ytmusic_callback():
     flow = Flow.from_client_secrets_file(
-        "client.json",
+        GOOGLE_OAUTH_CLIENT_FILE,
         scopes=YT_SCOPES,
         state=session.get("yt_state"),
         redirect_uri=request.host_url + "ytmusic/callback"

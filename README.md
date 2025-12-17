@@ -177,14 +177,27 @@ Copy `.env.example` to `.env` and populate it with your own credentials.
 
 ## Running the Project
 
-### 1. Start the Authentication Server
+### 1. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Start the Authentication Server
+
+```bash
+python -m auth.server
+```
+
+Or navigate to the auth directory:
 
 ```bash
 cd auth
 python server.py
+cd ..
 ```
 
-### 2. Run the GUI
+### 3. Run the GUI
 
 ```bash
 python gui/app.py
