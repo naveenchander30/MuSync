@@ -1,5 +1,5 @@
 flask
 requests
+rapidfuzz
 ytmusicapi
 google-auth-oauthlib
-playwright
