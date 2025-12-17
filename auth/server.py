@@ -92,6 +92,8 @@ def refresh_spotify(refresh_token):
 @app.route("/spotify/token")
 def spotify_token():
     token = store.load("spotify")
+    if not token:
+        return jsonify({"error": "Not authenticated. Please visit /spotify/login first."}), 401
     if store.is_expired(token):
         token = refresh_spotify(token["refresh_token"])
         store.save("spotify", token)
@@ -123,8 +125,12 @@ def ytmusic_callback():
 
 @app.route("/ytmusic/token")
 def ytmusic_token():
-    with open("yt_creds.pkl", "rb") as f:
-        creds = pickle.load(f)
+    try:
+        with open("yt_creds.pkl", "rb") as f:
+            creds = pickle.load(f)
+    except FileNotFoundError:
+        return jsonify({"error": "Not authenticated. Please visit /ytmusic/login first."}), 401
+    
     if creds.expired and creds.refresh_token:
         creds.refresh(Request())
         with open("yt_creds.pkl", "wb") as f:
