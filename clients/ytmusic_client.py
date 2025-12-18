@@ -13,7 +13,7 @@ class YTMusicClient:
 
     def refresh_auth(self):
         try:
-            resp = requests.get(f"{self.auth_server}/ytmusic/token", timeout=10)
+            resp = requests.get(f"{self.auth_server}/ytmusic/token", timeout=30)
             resp.raise_for_status()
             with open(self.auth_file, "w") as f:
                 json.dump(resp.json(), f)

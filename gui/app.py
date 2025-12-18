@@ -304,6 +304,36 @@ class MuSyncApp(tk.Tk):
         """Add a message to the log"""
         self.log.insert("end", message + "\n", tag)
         self.log.see("end")
+    
+    def check_authentication(self, service="spotify"):
+        """Check if user is authenticated for a service"""
+        try:
+            import requests
+            url = f"{AUTH_SERVER}/{service}/token"
+            resp = requests.get(url, timeout=30)
+            return resp.status_code == 200
+        except Exception:
+            return False
+    
+    def prompt_authentication(self, service="spotify"):
+        """Prompt user to authenticate"""
+        service_name = "Spotify" if service == "spotify" else "YouTube Music"
+        response = messagebox.askyesno(
+            "Authentication Required",
+            f"You need to authenticate with {service_name} first.\n\n"
+            f"Would you like to open the login page now?"
+        )
+        if response:
+            if service == "spotify":
+                self.open_spotify_auth()
+            else:
+                self.open_ytmusic_auth()
+            messagebox.showinfo(
+                "Complete Authentication",
+                f"Please complete the {service_name} authentication in your browser, "
+                f"then try the operation again."
+            )
+        return False
         
     def update_ui(self, state):
         """Update UI with current sync state"""
@@ -375,18 +405,30 @@ class MuSyncApp(tk.Tk):
         
     def export_spotify(self):
         """Export playlists from Spotify"""
+        if not self.check_authentication("spotify"):
+            self.prompt_authentication("spotify")
+            return
         self.run_operation(export_spotify, "Export from Spotify")
         
     def export_ytmusic(self):
         """Export playlists from YouTube Music"""
+        if not self.check_authentication("ytmusic"):
+            self.prompt_authentication("ytmusic")
+            return
         self.run_operation(export_ytmusic, "Export from YouTube Music")
         
     def import_spotify(self):
         """Import playlists to Spotify"""
+        if not self.check_authentication("spotify"):
+            self.prompt_authentication("spotify")
+            return
         self.run_operation(import_spotify, "Import to Spotify")
         
     def import_ytmusic(self):
         """Import playlists to YouTube Music"""
+        if not self.check_authentication("ytmusic"):
+            self.prompt_authentication("ytmusic")
+            return
         self.run_operation(import_ytmusic, "Import to YouTube Music")
         
     def clear_logs(self):

@@ -9,7 +9,7 @@ class SpotifyClient:
 
     def _headers(self):
         try:
-            resp = requests.get(f"{self.auth_server}/spotify/token", timeout=10)
+            resp = requests.get(f"{self.auth_server}/spotify/token", timeout=30)
             resp.raise_for_status()
             token = resp.json()
             return {"Authorization": f"Bearer {token['access_token']}"}

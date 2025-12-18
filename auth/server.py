@@ -38,7 +38,7 @@ def spotify_login():
     params = {
         "client_id": CLIENT_ID,
         "response_type": "code",
-        "redirect_uri": request.host_url + "spotify/callback",
+        "redirect_uri": "https://musync-k60r.onrender.com/spotify/callback",
         "scope": SPOTIFY_SCOPES,
         "state": session["state"]
     }
@@ -59,7 +59,7 @@ def spotify_callback():
         data={
             "grant_type": "authorization_code",
             "code": request.args.get("code"),
-            "redirect_uri": request.host_url + "spotify/callback"
+            "redirect_uri": "https://musync-k60r.onrender.com/spotify/callback"
         }
     )
 
@@ -104,7 +104,7 @@ def ytmusic_login():
     flow = Flow.from_client_secrets_file(
         GOOGLE_OAUTH_CLIENT_FILE,
         scopes=YT_SCOPES,
-        redirect_uri=request.host_url + "ytmusic/callback"
+        redirect_uri="https://musync-k60r.onrender.com/ytmusic/callback"
     )
     url, state = flow.authorization_url(prompt="consent")
     session["yt_state"] = state
@@ -116,7 +116,7 @@ def ytmusic_callback():
         GOOGLE_OAUTH_CLIENT_FILE,
         scopes=YT_SCOPES,
         state=session.get("yt_state"),
-        redirect_uri=request.host_url + "ytmusic/callback"
+        redirect_uri="https://musync-k60r.onrender.com/ytmusic/callback"
     )
     flow.fetch_token(authorization_response=request.url)
     with open("yt_creds.pkl", "wb") as f:
