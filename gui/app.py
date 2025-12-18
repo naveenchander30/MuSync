@@ -1,11 +1,12 @@
-import tkinter as tk
-from tkinter import ttk, messagebox, scrolledtext
+import threading
 import sys
 from pathlib import Path
-import threading
-import webbrowser
 
-# Add parent directory to path for imports when running standalone
+import ttkbootstrap as tb
+from ttkbootstrap.constants import *
+from ttkbootstrap.dialogs import Messagebox
+
+# Allow standalone execution
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from gui.state import SyncState
@@ -16,459 +17,524 @@ from sync.ytmusic_export import export_ytmusic
 from config import AUTH_SERVER
 
 
-class MuSyncApp(tk.Tk):
+class MuSyncApp(tb.Window):
     def __init__(self):
-        super().__init__()
-        self.title("MuSync - Music Library Synchronization")
-        self.geometry("1000x700")
-        self.configure(bg="#1a1a1a")
+        super().__init__(
+            title="MuSync",
+            themename="darkly",
+            size=(1200, 700),
+            resizable=(True, True),
+        )
+
         self.state = SyncState()
-        self.is_running = False
-        
-        # Set theme colors
-        self.colors = {
-            "bg": "#1a1a1a",
-            "fg": "#ffffff",
-            "accent": "#1db954",  # Spotify green
-            "secondary": "#ff0000",  # YouTube red
-            "button": "#2a2a2a",
-            "button_hover": "#3a3a3a",
-            "text_bg": "#2d2d2d",
-            "success": "#4caf50",
-            "error": "#f44336",
-            "warning": "#ff9800"
+        self.current_view = None
+
+        self._build_layout()
+
+    # --------------------------------------------------
+    # Layout
+    # --------------------------------------------------
+
+    def _build_layout(self):
+        container = tb.Frame(self)
+        container.pack(fill=BOTH, expand=True)
+
+        self._create_sidebar(container)
+
+        self.content = tb.Frame(container, padding=20)
+        self.content.pack(side=RIGHT, fill=BOTH, expand=True)
+
+        self.views = {
+            "dashboard": DashboardView(self),
+            "export": ExportView(self),
+            "import": ImportView(self),
+            "logs": LogsView(self),
+            "settings": SettingsView(self),
         }
-        
-        self._setup_ui()
-        
-    def _setup_ui(self):
-        """Setup the complete UI layout"""
-        # Create menu bar
-        self._create_menu()
-        
-        # Main container with padding
-        main_frame = tk.Frame(self, bg=self.colors["bg"])
-        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
-        
-        # Header
-        self._create_header(main_frame)
-        
-        # Status section
-        self._create_status_section(main_frame)
-        
-        # Control buttons section
-        self._create_control_section(main_frame)
-        
-        # Progress section
-        self._create_progress_section(main_frame)
-        
-        # Log section
-        self._create_log_section(main_frame)
-        
-    def _create_menu(self):
-        """Create menu bar"""
-        menubar = tk.Menu(self, bg=self.colors["button"], fg=self.colors["fg"])
-        self.config(menu=menubar)
-        
-        # File menu
-        file_menu = tk.Menu(menubar, tearoff=0, bg=self.colors["button"], fg=self.colors["fg"])
-        menubar.add_cascade(label="File", menu=file_menu)
-        file_menu.add_command(label="Clear Logs", command=self.clear_logs)
-        file_menu.add_separator()
-        file_menu.add_command(label="Exit", command=self.quit)
-        
-        # Auth menu
-        auth_menu = tk.Menu(menubar, tearoff=0, bg=self.colors["button"], fg=self.colors["fg"])
-        menubar.add_cascade(label="Authentication", menu=auth_menu)
-        auth_menu.add_command(label="Login to Spotify", command=self.open_spotify_auth)
-        auth_menu.add_command(label="Login to YouTube Music", command=self.open_ytmusic_auth)
-        
-        # Help menu
-        help_menu = tk.Menu(menubar, tearoff=0, bg=self.colors["button"], fg=self.colors["fg"])
-        menubar.add_cascade(label="Help", menu=help_menu)
-        help_menu.add_command(label="About", command=self.show_about)
-        
-    def _create_header(self, parent):
-        """Create header with title and description"""
-        header_frame = tk.Frame(parent, bg=self.colors["bg"])
-        header_frame.pack(fill="x", pady=(0, 20))
-        
-        title = tk.Label(
-            header_frame,
-            text="🎵 MuSync",
-            font=("Segoe UI", 24, "bold"),
-            bg=self.colors["bg"],
-            fg=self.colors["accent"]
-        )
-        title.pack()
-        
-        subtitle = tk.Label(
-            header_frame,
-            text="Sync your music library between Spotify and YouTube Music",
-            font=("Segoe UI", 10),
-            bg=self.colors["bg"],
-            fg="#888888"
-        )
-        subtitle.pack()
-        
-    def _create_status_section(self, parent):
-        """Create status indicator section"""
-        status_frame = tk.Frame(parent, bg=self.colors["button"], relief="ridge", bd=2)
-        status_frame.pack(fill="x", pady=(0, 20))
-        
-        inner_frame = tk.Frame(status_frame, bg=self.colors["button"])
-        inner_frame.pack(fill="x", padx=15, pady=15)
-        
-        # Current operation status
-        status_label = tk.Label(
-            inner_frame,
-            text="Status:",
-            font=("Segoe UI", 10, "bold"),
-            bg=self.colors["button"],
-            fg=self.colors["fg"]
-        )
-        status_label.pack(side="left")
-        
-        self.status_text = tk.Label(
-            inner_frame,
-            text="Idle",
-            font=("Segoe UI", 10),
-            bg=self.colors["button"],
-            fg=self.colors["accent"]
-        )
-        self.status_text.pack(side="left", padx=10)
-        
-        # Stats on the right
-        stats_frame = tk.Frame(inner_frame, bg=self.colors["button"])
-        stats_frame.pack(side="right")
-        
-        self.stats_label = tk.Label(
-            stats_frame,
-            text="Added: 0 | Failed: 0",
-            font=("Segoe UI", 10),
-            bg=self.colors["button"],
-            fg="#888888"
-        )
-        self.stats_label.pack()
-        
-    def _create_control_section(self, parent):
-        """Create control buttons section"""
-        control_frame = tk.Frame(parent, bg=self.colors["bg"])
-        control_frame.pack(fill="x", pady=(0, 20))
-        
-        # Export section
-        export_frame = tk.LabelFrame(
-            control_frame,
-            text="Export Playlists",
-            font=("Segoe UI", 11, "bold"),
-            bg=self.colors["button"],
-            fg=self.colors["fg"],
-            relief="ridge",
-            bd=2
-        )
-        export_frame.pack(side="left", fill="both", expand=True, padx=(0, 10))
-        
-        export_inner = tk.Frame(export_frame, bg=self.colors["button"])
-        export_inner.pack(fill="both", expand=True, padx=15, pady=15)
-        
-        self._create_button(
-            export_inner,
-            "📥 Export from Spotify",
-            self.export_spotify,
-            self.colors["accent"]
-        ).pack(fill="x", pady=5)
-        
-        self._create_button(
-            export_inner,
-            "📥 Export from YouTube Music",
-            self.export_ytmusic,
-            self.colors["secondary"]
-        ).pack(fill="x", pady=5)
-        
-        # Import section
-        import_frame = tk.LabelFrame(
-            control_frame,
-            text="Import Playlists",
-            font=("Segoe UI", 11, "bold"),
-            bg=self.colors["button"],
-            fg=self.colors["fg"],
-            relief="ridge",
-            bd=2
-        )
-        import_frame.pack(side="left", fill="both", expand=True)
-        
-        import_inner = tk.Frame(import_frame, bg=self.colors["button"])
-        import_inner.pack(fill="both", expand=True, padx=15, pady=15)
-        
-        self._create_button(
-            import_inner,
-            "📤 Import to Spotify",
-            self.import_spotify,
-            self.colors["accent"]
-        ).pack(fill="x", pady=5)
-        
-        self._create_button(
-            import_inner,
-            "📤 Import to YouTube Music",
-            self.import_ytmusic,
-            self.colors["secondary"]
-        ).pack(fill="x", pady=5)
-        
-    def _create_button(self, parent, text, command, color):
-        """Create a styled button"""
-        button = tk.Button(
-            parent,
-            text=text,
-            command=command,
-            font=("Segoe UI", 10, "bold"),
-            bg=color,
-            fg="#ffffff",
-            activebackground=color,
-            activeforeground="#ffffff",
-            relief="flat",
-            cursor="hand2",
-            height=2,
-            bd=0
-        )
-        button.bind("<Enter>", lambda e: button.config(bg=self._lighten_color(color)))
-        button.bind("<Leave>", lambda e: button.config(bg=color))
-        return button
-        
-    def _lighten_color(self, color):
-        """Lighten a hex color"""
-        color = color.lstrip('#')
-        r, g, b = tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
-        r = min(255, r + 30)
-        g = min(255, g + 30)
-        b = min(255, b + 30)
-        return f'#{r:02x}{g:02x}{b:02x}'
-        
-    def _create_progress_section(self, parent):
-        """Create progress bar section"""
-        progress_frame = tk.Frame(parent, bg=self.colors["button"], relief="ridge", bd=2)
-        progress_frame.pack(fill="x", pady=(0, 20))
-        
-        inner_frame = tk.Frame(progress_frame, bg=self.colors["button"])
-        inner_frame.pack(fill="x", padx=15, pady=15)
-        
-        self.progress_label = tk.Label(
-            inner_frame,
-            text="Ready",
-            font=("Segoe UI", 9),
-            bg=self.colors["button"],
-            fg="#888888"
-        )
-        self.progress_label.pack(anchor="w", pady=(0, 5))
-        
-        self.progress_bar = ttk.Progressbar(
-            inner_frame,
-            mode='indeterminate',
-            length=300
-        )
-        self.progress_bar.pack(fill="x")
-        
-    def _create_log_section(self, parent):
-        """Create log display section"""
-        log_frame = tk.LabelFrame(
-            parent,
-            text="Activity Log",
-            font=("Segoe UI", 11, "bold"),
-            bg=self.colors["button"],
-            fg=self.colors["fg"],
-            relief="ridge",
-            bd=2
-        )
-        log_frame.pack(fill="both", expand=True)
-        
-        log_inner = tk.Frame(log_frame, bg=self.colors["button"])
-        log_inner.pack(fill="both", expand=True, padx=10, pady=10)
-        
-        self.log = scrolledtext.ScrolledText(
-            log_inner,
-            font=("Consolas", 9),
-            bg=self.colors["text_bg"],
-            fg=self.colors["fg"],
-            wrap="word",
-            relief="flat",
-            insertbackground=self.colors["fg"]
-        )
-        self.log.pack(fill="both", expand=True)
-        
-        # Configure tags for colored output
-        self.log.tag_config("success", foreground=self.colors["success"])
-        self.log.tag_config("error", foreground=self.colors["error"])
-        self.log.tag_config("warning", foreground=self.colors["warning"])
-        self.log.tag_config("info", foreground="#2196f3")
-        
-    def log_message(self, message, tag=""):
-        """Add a message to the log"""
-        self.log.insert("end", message + "\n", tag)
-        self.log.see("end")
+
+        for view in self.views.values():
+            view.frame.place(relx=0, rely=0, relwidth=1, relheight=1)
+
+        self.show_view("dashboard")
+
+    def _create_sidebar(self, parent):
+        sidebar = tb.Frame(parent, width=220, padding=10)
+        sidebar.pack(side=LEFT, fill=Y)
+        sidebar.pack_propagate(False)
+
+        tb.Label(
+            sidebar,
+            text="MuSync",
+            font=("Segoe UI", 20, "bold"),
+            bootstyle="primary",
+        ).pack(pady=(20, 30))
+
+        def nav(text, view):
+            return tb.Button(
+                sidebar,
+                text=text,
+                bootstyle="secondary",
+                command=lambda: self.show_view(view),
+                width=20,
+            )
+
+        nav("Dashboard", "dashboard").pack(pady=6)
+        nav("Export", "export").pack(pady=6)
+        nav("Import", "import").pack(pady=6)
+        nav("Logs", "logs").pack(pady=6)
+        nav("Settings", "settings").pack(pady=6)
+
+    # --------------------------------------------------
+    # View switching
+    # --------------------------------------------------
+
+    def show_view(self, name):
+        if self.current_view:
+            self.current_view.frame.lower()
+        self.current_view = self.views[name]
+        self.current_view.frame.lift()
+
+    # --------------------------------------------------
+    # Sync runner
+    # --------------------------------------------------
+
+    def run_task(self, func):
+        self.state.reset()
+        dashboard = self.views["dashboard"]
+        dashboard.set_running(True)
+        dashboard.log(f"\n{'='*60}")
+        dashboard.log(f"🚀 Starting: {func.__name__.replace('_', ' ').title()}")
+        dashboard.log(f"{'='*60}\n")
+
+        def wrapped_task():
+            try:
+                func(AUTH_SERVER, self.state, self.update_ui)
+                self.after(0, self._task_complete, func.__name__)
+            except Exception as e:
+                self.after(0, self._task_error, str(e))
+
+        threading.Thread(target=wrapped_task, daemon=True).start()
     
-    def check_authentication(self, service="spotify"):
-        """Check if user is authenticated for a service"""
+    def _task_complete(self, task_name):
+        dashboard = self.views["dashboard"]
+        dashboard.set_running(False)
+        dashboard.log(f"\n{'='*60}")
+        dashboard.log(f"✅ Completed: {task_name.replace('_', ' ').title()}")
+        dashboard.log(f"📊 Total Added: {len(self.state.added)} | Total Failed: {len(self.state.failed)}")
+        dashboard.log(f"{'='*60}\n")
+        
+        Messagebox.show_info(
+            f"Operation completed!\n\n"
+            f"✅ Added: {len(self.state.added)}\n"
+            f"❌ Failed: {len(self.state.failed)}",
+            title="Success"
+        )
+    
+    def _task_error(self, error_msg):
+        dashboard = self.views["dashboard"]
+        dashboard.set_running(False)
+        dashboard.log(f"\n{'='*60}")
+        dashboard.log(f"❌ Error: {error_msg}")
+        dashboard.log(f"{'='*60}\n")
+        
+        Messagebox.show_error(
+            f"Operation failed:\n\n{error_msg}",
+            title="Error"
+        )
+
+    def update_ui(self, state):
+        self.after(0, self._refresh_ui, state)
+
+    def _refresh_ui(self, state):
+        dashboard = self.views["dashboard"]
+        dashboard.update_stats(state)
+        
+        # Log to dashboard
+        if state.current_playlist:
+            dashboard.log(f"⏳ Processing: {state.current_playlist}")
+        
+        # Log successes and failures
+        if state.added and len(state.added) > 0:
+            last = state.added[-1]
+            dashboard.log(f"✅ Added: {last.get('name', 'Unknown')}")
+            self.views["logs"].log_all(f"✅ Added: {last.get('name', 'Unknown')}")
+        
+        if state.failed and len(state.failed) > 0:
+            last = state.failed[-1]
+            dashboard.log(f"❌ Failed: {last.get('name', 'Unknown')} - Low confidence match")
+            self.views["logs"].log_all(f"❌ Failed: {last.get('name', 'Unknown')}")
+
+    # --------------------------------------------------
+    # Actions
+    # --------------------------------------------------
+
+    def check_auth(self, service="spotify"):
+        """Check if authenticated with service"""
+        import requests
         try:
-            import requests
             url = f"{AUTH_SERVER}/{service}/token"
             resp = requests.get(url, timeout=30)
             return resp.status_code == 200
-        except Exception:
+        except:
             return False
-    
-    def prompt_authentication(self, service="spotify"):
+
+    def prompt_auth(self, service="spotify"):
         """Prompt user to authenticate"""
+        import webbrowser
         service_name = "Spotify" if service == "spotify" else "YouTube Music"
-        response = messagebox.askyesno(
-            "Authentication Required",
+        
+        result = Messagebox.yesno(
             f"You need to authenticate with {service_name} first.\n\n"
-            f"Would you like to open the login page now?"
+            f"Would you like to open the login page now?",
+            title="Authentication Required"
         )
-        if response:
-            if service == "spotify":
-                self.open_spotify_auth()
-            else:
-                self.open_ytmusic_auth()
-            messagebox.showinfo(
-                "Complete Authentication",
+        
+        if result == "Yes":
+            url = f"{AUTH_SERVER}/{service}/login"
+            webbrowser.open(url)
+            Messagebox.show_info(
                 f"Please complete the {service_name} authentication in your browser, "
-                f"then try the operation again."
+                f"then try the operation again.",
+                title="Complete Authentication"
             )
-        return False
-        
-    def update_ui(self, state):
-        """Update UI with current sync state"""
-        if state.current_playlist:
-            self.progress_label.config(text=f"Processing: {state.current_playlist}")
-            self.log_message(f"⏳ Processing playlist: {state.current_playlist}", "info")
-        
-        self.stats_label.config(
-            text=f"Added: {len(state.added)} | Failed: {len(state.failed)}"
-        )
-        
-        if state.failed:
-            last_failed = state.failed[-1]
-            self.log_message(
-                f"❌ Failed to match: {last_failed.get('name', 'Unknown')} by {', '.join(last_failed.get('artists', ['Unknown']))}",
-                "error"
-            )
-        
-        if state.added:
-            last_added = state.added[-1]
-            self.log_message(
-                f"✓ Added: {last_added.get('name', 'Unknown')}",
-                "success"
-            )
-            
-    def run_operation(self, operation_func, operation_name):
-        """Run a sync operation in a separate thread"""
-        if self.is_running:
-            messagebox.showwarning("Operation in Progress", "Please wait for the current operation to complete.")
-            return
-            
-        def run():
-            try:
-                self.is_running = True
-                self.status_text.config(text=operation_name, fg=self.colors["warning"])
-                self.progress_bar.start(10)
-                self.log_message(f"\n{'='*60}", "info")
-                self.log_message(f"🚀 Starting: {operation_name}", "info")
-                self.log_message(f"{'='*60}\n", "info")
-                
-                self.state.reset()
-                operation_func(AUTH_SERVER, self.state, self.update_ui)
-                
-                self.log_message(f"\n{'='*60}", "success")
-                self.log_message(f"✅ Completed: {operation_name}", "success")
-                self.log_message(f"Total Added: {len(self.state.added)} | Total Failed: {len(self.state.failed)}", "info")
-                self.log_message(f"{'='*60}\n", "success")
-                
-                self.status_text.config(text="Completed", fg=self.colors["success"])
-                messagebox.showinfo(
-                    "Operation Complete",
-                    f"{operation_name} completed!\n\nAdded: {len(self.state.added)}\nFailed: {len(self.state.failed)}"
-                )
-                
-            except Exception as e:
-                self.log_message(f"\n{'='*60}", "error")
-                self.log_message(f"❌ Error: {str(e)}", "error")
-                self.log_message(f"{'='*60}\n", "error")
-                self.status_text.config(text="Error", fg=self.colors["error"])
-                messagebox.showerror("Error", f"Operation failed:\n{str(e)}")
-                
-            finally:
-                self.is_running = False
-                self.progress_bar.stop()
-                self.progress_label.config(text="Ready")
-                
-        thread = threading.Thread(target=run, daemon=True)
-        thread.start()
-        
+
     def export_spotify(self):
-        """Export playlists from Spotify"""
-        if not self.check_authentication("spotify"):
-            self.prompt_authentication("spotify")
+        if not self.check_auth("spotify"):
+            self.prompt_auth("spotify")
             return
-        self.run_operation(export_spotify, "Export from Spotify")
-        
-    def export_ytmusic(self):
-        """Export playlists from YouTube Music"""
-        if not self.check_authentication("ytmusic"):
-            self.prompt_authentication("ytmusic")
-            return
-        self.run_operation(export_ytmusic, "Export from YouTube Music")
-        
+        self.run_task(export_spotify)
+
     def import_spotify(self):
-        """Import playlists to Spotify"""
-        if not self.check_authentication("spotify"):
-            self.prompt_authentication("spotify")
+        if not self.check_auth("spotify"):
+            self.prompt_auth("spotify")
             return
-        self.run_operation(import_spotify, "Import to Spotify")
-        
+        self.run_task(import_spotify)
+
+    def export_ytmusic(self):
+        if not self.check_auth("ytmusic"):
+            self.prompt_auth("ytmusic")
+            return
+        self.run_task(export_ytmusic)
+
     def import_ytmusic(self):
-        """Import playlists to YouTube Music"""
-        if not self.check_authentication("ytmusic"):
-            self.prompt_authentication("ytmusic")
+        if not self.check_auth("ytmusic"):
+            self.prompt_auth("ytmusic")
             return
-        self.run_operation(import_ytmusic, "Import to YouTube Music")
+        self.run_task(import_ytmusic)
+
+
+# ==================================================
+# Views
+# ==================================================
+
+class BaseView:
+    def __init__(self, app):
+        self.app = app
+        self.frame = tb.Frame(app.content, padding=10)
+
+
+class DashboardView(BaseView):
+    def __init__(self, app):
+        super().__init__(app)
+
+        # Header with gradient-like effect
+        header = tb.Frame(self.frame)
+        header.pack(fill=X, pady=(0, 20))
         
-    def clear_logs(self):
-        """Clear the log window"""
-        self.log.delete(1.0, "end")
-        self.log_message("📝 Logs cleared", "info")
+        tb.Label(
+            header,
+            text="🎵 MuSync Dashboard",
+            font=("Segoe UI", 24, "bold"),
+            bootstyle="primary",
+        ).pack(anchor=W)
         
-    def open_spotify_auth(self):
-        """Open Spotify authentication in browser"""
+        tb.Label(
+            header,
+            text="Sync your music library seamlessly",
+            font=("Segoe UI", 10),
+            bootstyle="secondary",
+        ).pack(anchor=W)
+
+        # Quick Actions Section
+        actions_frame = tb.Labelframe(
+            self.frame,
+            text="⚡ Quick Actions",
+            padding=15,
+        )
+        actions_frame.pack(fill=X, pady=(0, 20))
+        
+        actions_grid = tb.Frame(actions_frame)
+        actions_grid.pack(fill=X)
+        
+        # Export buttons
+        export_col = tb.Frame(actions_grid)
+        export_col.pack(side=LEFT, expand=True, fill=X, padx=5)
+        
+        tb.Button(
+            export_col,
+            text="📥 Export Spotify",
+            bootstyle="success-outline",
+            command=app.export_spotify,
+            width=20,
+        ).pack(fill=X, pady=5)
+        
+        tb.Button(
+            export_col,
+            text="📥 Export YouTube Music",
+            bootstyle="danger-outline",
+            command=app.export_ytmusic,
+            width=20,
+        ).pack(fill=X, pady=5)
+        
+        # Import buttons
+        import_col = tb.Frame(actions_grid)
+        import_col.pack(side=LEFT, expand=True, fill=X, padx=5)
+        
+        tb.Button(
+            import_col,
+            text="📤 Import to Spotify",
+            bootstyle="success",
+            command=app.import_spotify,
+            width=20,
+        ).pack(fill=X, pady=5)
+        
+        tb.Button(
+            import_col,
+            text="📤 Import to YouTube Music",
+            bootstyle="danger",
+            command=app.import_ytmusic,
+            width=20,
+        ).pack(fill=X, pady=5)
+
+        # Stats Cards
+        stats_frame = tb.Labelframe(
+            self.frame,
+            text="📊 Statistics",
+            padding=15,
+        )
+        stats_frame.pack(fill=X, pady=(0, 20))
+        
+        cards = tb.Frame(stats_frame)
+        cards.pack(fill=X)
+
+        self.status = self._card(cards, "⚙️ Status", "Idle", "info", large=False)
+        self.added = self._card(cards, "✅ Tracks Added", "0", "success", large=True)
+        self.failed = self._card(cards, "❌ Failed", "0", "danger", large=True)
+        self.current_playlist = self._card(cards, "📁 Current", "-", "secondary", large=False)
+
+        # Live Logs Section
+        logs_frame = tb.Labelframe(
+            self.frame,
+            text="📝 Activity Log",
+            padding=15,
+        )
+        logs_frame.pack(fill=BOTH, expand=True)
+        
+        # Progress bar
+        self.progress = tb.Progressbar(
+            logs_frame,
+            mode='indeterminate',
+            bootstyle="success-striped",
+        )
+        self.progress.pack(fill=X, pady=(0, 10))
+        
+        # Scrolled text for logs
+        self.log_text = tb.ScrolledText(
+            logs_frame,
+            height=15,
+            autohide=True,
+            wrap="word",
+        )
+        self.log_text.pack(fill=BOTH, expand=True)
+
+    def _card(self, parent, title, value, style, large=True):
+        card = tb.Frame(parent, padding=15, bootstyle=f"{style}")
+        card.pack(side=LEFT, expand=True, fill=BOTH, padx=5)
+
+        tb.Label(
+            card, 
+            text=title, 
+            font=("Segoe UI", 9),
+            bootstyle="inverse-secondary"
+        ).pack()
+        
+        lbl = tb.Label(
+            card,
+            text=value,
+            font=("Segoe UI", 22 if large else 14, "bold"),
+            bootstyle="inverse-" + style,
+        )
+        lbl.pack()
+        return lbl
+
+    def update_stats(self, state):
+        self.added.config(text=str(len(state.added)))
+        self.failed.config(text=str(len(state.failed)))
+        if state.current_playlist:
+            self.current_playlist.config(text=state.current_playlist[:25] + "..." if len(state.current_playlist) > 25 else state.current_playlist)
+
+    def set_running(self, running):
+        self.status.config(text="🔄 Running" if running else "✓ Idle")
+        if running:
+            self.progress.start(10)
+        else:
+            self.progress.stop()
+    
+    def log(self, message):
+        """Add message to dashboard logs"""
+        self.log_text.insert(END, message + "\n")
+        self.log_text.see(END)
+
+
+class ExportView(BaseView):
+    def __init__(self, app):
+        super().__init__(app)
+
+        tb.Label(
+            self.frame,
+            text="Export",
+            font=("Segoe UI", 18, "bold"),
+        ).pack(anchor=W, pady=(0, 20))
+
+        tb.Button(
+            self.frame,
+            text="Export Spotify → JSON",
+            bootstyle="primary",
+            command=app.export_spotify,
+            width=30,
+        ).pack(pady=10)
+
+        tb.Button(
+            self.frame,
+            text="Export YTMusic → JSON",
+            bootstyle="primary",
+            command=app.export_ytmusic,
+            width=30,
+        ).pack(pady=10)
+
+
+class ImportView(BaseView):
+    def __init__(self, app):
+        super().__init__(app)
+
+        tb.Label(
+            self.frame,
+            text="Import",
+            font=("Segoe UI", 18, "bold"),
+        ).pack(anchor=W, pady=(0, 20))
+
+        tb.Button(
+            self.frame,
+            text="Import JSON → Spotify",
+            bootstyle="success",
+            command=app.import_spotify,
+            width=30,
+        ).pack(pady=10)
+
+        tb.Button(
+            self.frame,
+            text="Import JSON → YTMusic",
+            bootstyle="success",
+            command=app.import_ytmusic,
+            width=30,
+        ).pack(pady=10)
+
+
+class LogsView(BaseView):
+    def __init__(self, app):
+        super().__init__(app)
+
+        tb.Label(
+            self.frame,
+            text="Logs",
+            font=("Segoe UI", 18, "bold"),
+        ).pack(anchor=W, pady=(0, 10))
+
+        self.text = tb.Text(self.frame, height=25)
+        self.text.pack(fill=BOTH, expand=True)
+
+    def log_all(self, msg):
+        self.text.insert(END, msg + "\n")
+        self.text.see(END)
+
+
+class SettingsView(BaseView):
+    def __init__(self, app):
+        super().__init__(app)
+
+        tb.Label(
+            self.frame,
+            text="Settings",
+            font=("Segoe UI", 18, "bold"),
+        ).pack(anchor=W, pady=(0, 10))
+
+        tb.Label(
+            self.frame,
+            text=f"Auth Server: {AUTH_SERVER}",
+            wraplength=500,
+        ).pack(anchor=W, pady=10)
+
+        # Authentication section
+        auth_frame = tb.Labelframe(
+            self.frame,
+            text="Authentication",
+            padding=15,
+        )
+        auth_frame.pack(fill=X, pady=20)
+
+        tb.Button(
+            auth_frame,
+            text="🔐 Login to Spotify",
+            bootstyle="success",
+            command=self.login_spotify,
+            width=25,
+        ).pack(pady=5)
+
+        tb.Button(
+            auth_frame,
+            text="🔐 Login to YouTube Music",
+            bootstyle="danger",
+            command=self.login_ytmusic,
+            width=25,
+        ).pack(pady=5)
+
+        tb.Button(
+            self.frame,
+            text="About",
+            bootstyle="secondary",
+            command=self.about,
+        ).pack(pady=10)
+
+    def login_spotify(self):
+        import webbrowser
         url = f"{AUTH_SERVER}/spotify/login"
         webbrowser.open(url)
-        self.log_message(f"🔐 Opening Spotify authentication: {url}", "info")
-        
-    def open_ytmusic_auth(self):
-        """Open YouTube Music authentication in browser"""
+        Messagebox.show_info(
+            "Complete the Spotify authentication in your browser.",
+            title="Spotify Login"
+        )
+
+    def login_ytmusic(self):
+        import webbrowser
         url = f"{AUTH_SERVER}/ytmusic/login"
         webbrowser.open(url)
-        self.log_message(f"🔐 Opening YouTube Music authentication: {url}", "info")
-        
-    def show_about(self):
-        """Show about dialog"""
-        about_text = """MuSync - Music Library Synchronization Tool
+        Messagebox.show_info(
+            "Complete the YouTube Music authentication in your browser.",
+            title="YouTube Music Login"
+        )
 
-Version: 1.0.0
+    def about(self):
+        Messagebox.show_info(
+            "MuSync\n\n"
+            "• Cross-platform playlist sync\n"
+            "• Automatic OAuth refresh\n"
+            "• Intelligent matching\n"
+            "• Real-time GUI",
+            title="About MuSync",
+        )
 
-A robust music synchronization tool for transferring 
-playlists and liked songs between Spotify and YouTube Music.
 
-Features:
-• Export/Import playlists between platforms
-• Intelligent track matching with confidence scoring
-• Real-time progress tracking
-• Automatic OAuth token refresh
-• Detailed failure reporting
-
-Built with Python, Flask, and Tkinter
-        """
-        messagebox.showinfo("About MuSync", about_text)
-
+# --------------------------------------------------
 
 if __name__ == "__main__":
-    app = MuSyncApp()
-    app.mainloop()
+    MuSyncApp().mainloop()

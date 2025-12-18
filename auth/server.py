@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from auth.token_store import JSONTokenStore
 import config
+import json
 
 app = Flask(__name__)
 app.secret_key = secrets.token_urlsafe(64)
@@ -19,6 +20,30 @@ store = JSONTokenStore()
 CLIENT_ID = config.CLIENT_ID
 CLIENT_SECRET = config.CLIENT_SECRET
 GOOGLE_OAUTH_CLIENT_FILE = config.GOOGLE_OAUTH_CLIENT_FILE
+
+# Initialize Google OAuth client file from environment variable if it exists
+def init_google_oauth_file():
+    """Write Google OAuth credentials from environment variable to file"""
+    google_oauth_json = os.getenv("GOOGLE_OAUTH_CLIENT")
+    if google_oauth_json and not os.path.exists(GOOGLE_OAUTH_CLIENT_FILE):
+        try:
+            # Parse and validate JSON
+            credentials = json.loads(google_oauth_json)
+            # Write to file
+            with open(GOOGLE_OAUTH_CLIENT_FILE, "w") as f:
+                json.dump(credentials, f, indent=2)
+            print(f"✓ Created {GOOGLE_OAUTH_CLIENT_FILE} from environment variable")
+        except json.JSONDecodeError as e:
+            print(f"✗ Failed to parse GOOGLE_OAUTH_CLIENT env var: {e}")
+        except Exception as e:
+            print(f"✗ Failed to write {GOOGLE_OAUTH_CLIENT_FILE}: {e}")
+    elif os.path.exists(GOOGLE_OAUTH_CLIENT_FILE):
+        print(f"✓ {GOOGLE_OAUTH_CLIENT_FILE} already exists")
+    else:
+        print(f"⚠ Warning: {GOOGLE_OAUTH_CLIENT_FILE} not found and GOOGLE_OAUTH_CLIENT env var not set")
+
+# Initialize on startup
+init_google_oauth_file()
 
 SPOTIFY_SCOPES = (
     "playlist-read-private playlist-read-collaborative "
@@ -101,27 +126,39 @@ def spotify_token():
 
 @app.route("/ytmusic/login")
 def ytmusic_login():
-    flow = Flow.from_client_secrets_file(
-        GOOGLE_OAUTH_CLIENT_FILE,
-        scopes=YT_SCOPES,
-        redirect_uri="https://musync-k60r.onrender.com/ytmusic/callback"
-    )
-    url, state = flow.authorization_url(prompt="consent")
-    session["yt_state"] = state
-    return redirect(url)
+    try:
+        if not os.path.exists(GOOGLE_OAUTH_CLIENT_FILE):
+            return jsonify({
+                "error": "Google OAuth client file not found",
+                "message": f"Please upload {GOOGLE_OAUTH_CLIENT_FILE} to the server"
+            }), 500
+        
+        flow = Flow.from_client_secrets_file(
+            GOOGLE_OAUTH_CLIENT_FILE,
+            scopes=YT_SCOPES,
+            redirect_uri="https://musync-k60r.onrender.com/ytmusic/callback"
+        )
+        url, state = flow.authorization_url(prompt="consent")
+        session["yt_state"] = state
+        return redirect(url)
+    except Exception as e:
+        return jsonify({"error": "YouTube Music login failed", "message": str(e)}), 500
 
 @app.route("/ytmusic/callback")
 def ytmusic_callback():
-    flow = Flow.from_client_secrets_file(
-        GOOGLE_OAUTH_CLIENT_FILE,
-        scopes=YT_SCOPES,
-        state=session.get("yt_state"),
-        redirect_uri="https://musync-k60r.onrender.com/ytmusic/callback"
-    )
-    flow.fetch_token(authorization_response=request.url)
-    with open("yt_creds.pkl", "wb") as f:
-        pickle.dump(flow.credentials, f)
-    return "YouTube Music authentication complete."
+    try:
+        flow = Flow.from_client_secrets_file(
+            GOOGLE_OAUTH_CLIENT_FILE,
+            scopes=YT_SCOPES,
+            state=session.get("yt_state"),
+            redirect_uri="https://musync-k60r.onrender.com/ytmusic/callback"
+        )
+        flow.fetch_token(authorization_response=request.url)
+        with open("yt_creds.pkl", "wb") as f:
+            pickle.dump(flow.credentials, f)
+        return "YouTube Music authentication complete."
+    except Exception as e:
+        return f"YouTube Music authentication failed: {str(e)}", 500
 
 @app.route("/ytmusic/token")
 def ytmusic_token():

@@ -4,3 +4,4 @@ rapidfuzz
 ytmusicapi
 google-auth-oauthlib
 python-dotenv
+ttkbootstrap
