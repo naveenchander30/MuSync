@@ -56,12 +56,14 @@ See the [Development section](README.md#development) in the README.
 ## Code Style
 
 ### Python
+
 - Follow PEP 8 guidelines
 - Use meaningful variable names
 - Add docstrings for functions and classes
 - Keep functions focused and small
 
 ### JavaScript/React
+
 - Use functional components with hooks
 - Follow Airbnb React style guide
 - Use meaningful component and variable names
@@ -70,6 +72,7 @@ See the [Development section](README.md#development) in the README.
 ## Testing
 
 While we don't currently have automated tests, please manually test:
+
 - Both export and import operations
 - Both Spotify and YouTube Music
 - Error scenarios (no auth, missing files, API errors)

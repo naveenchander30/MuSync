@@ -27,17 +27,20 @@ MuSync is a modern, production-ready music synchronization tool that makes trans
 ## 📸 Screenshots
 
 ### Landing Page
-> *Beautiful hero section with clear call-to-action*
+
+> _Beautiful hero section with clear call-to-action_
 
 ![Landing Page](docs/screenshots/landing-page.png)
 
 ### Dashboard
-> *Real-time sync statistics and activity logs*
+
+> _Real-time sync statistics and activity logs_
 
 ![Dashboard](docs/screenshots/dashboard.png)
 
 ### Sync Control Panel
-> *One-click actions for all sync operations*
+
+> _One-click actions for all sync operations_
 
 ![Sync Panel](docs/screenshots/sync-panel.png)
 
@@ -78,6 +81,7 @@ MuSync is a modern, production-ready music synchronization tool that makes trans
 ### Tech Stack
 
 **Backend:**
+
 - Python 3.11+
 - Flask (REST API)
 - Threading (Background Tasks)
@@ -85,12 +89,14 @@ MuSync is a modern, production-ready music synchronization tool that makes trans
 - Spotipy & ytmusicapi (API Clients)
 
 **Frontend:**
+
 - React 18
 - Vite (Build Tool)
 - Tailwind CSS (Styling)
 - Axios (HTTP Client)
 
 **Infrastructure:**
+
 - Docker & Docker Compose
 - Nginx (Production Server)
 - OAuth 2.0 (Authentication)
@@ -157,6 +163,7 @@ docker-compose up -d
 ### 5. Access MuSync
 
 Open your browser and navigate to:
+
 - **Frontend:** [http://localhost:3000](http://localhost:3000)
 - **API:** [http://localhost:5001](http://localhost:5001)
 
@@ -177,11 +184,13 @@ Open your browser and navigate to:
 ### Syncing Playlists
 
 #### Export (Backup)
+
 1. Go to **Sync** tab
 2. Click **"Export from Spotify"** or **"Export from YouTube Music"**
 3. Wait for completion - playlists saved to `playlists.json`
 
 #### Import (Restore)
+
 1. Ensure you have exported playlists first
 2. Go to **Sync** tab
 3. Click **"Import to Spotify"** or **"Import to YouTube Music"**
@@ -202,6 +211,7 @@ Open your browser and navigate to:
 ### Running Locally (Without Docker)
 
 **Backend:**
+
 ```bash
 # Install dependencies
 pip install -r requirements.txt
@@ -211,6 +221,7 @@ python api.py
 ```
 
 **Frontend:**
+
 ```bash
 cd frontend
 
@@ -222,6 +233,7 @@ npm run dev
 ```
 
 Access:
+
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5001
 
@@ -278,6 +290,7 @@ MuSync uses a hybrid authentication approach:
 6. **Automatic refresh** when tokens expire
 
 **Why separate auth server?**
+
 - OAuth redirect URIs are registered with Spotify/Google and cannot change
 - Keeps the main app portable while auth stays stable
 - Allows for easy credential rotation
@@ -286,17 +299,17 @@ MuSync uses a hybrid authentication approach:
 
 ## 📊 API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/health` | Health check |
-| `GET` | `/api/auth/status` | Check auth status for all services |
-| `GET` | `/api/status` | Get current sync progress |
-| `GET` | `/api/logs` | Retrieve all activity logs |
-| `POST` | `/api/logs/clear` | Clear activity logs |
-| `POST` | `/api/sync/export/spotify` | Export Spotify playlists |
-| `POST` | `/api/sync/export/ytmusic` | Export YouTube Music playlists |
-| `POST` | `/api/sync/import/spotify` | Import playlists to Spotify |
-| `POST` | `/api/sync/import/ytmusic` | Import playlists to YouTube Music |
+| Method | Endpoint                   | Description                        |
+| ------ | -------------------------- | ---------------------------------- |
+| `GET`  | `/api/health`              | Health check                       |
+| `GET`  | `/api/auth/status`         | Check auth status for all services |
+| `GET`  | `/api/status`              | Get current sync progress          |
+| `GET`  | `/api/logs`                | Retrieve all activity logs         |
+| `POST` | `/api/logs/clear`          | Clear activity logs                |
+| `POST` | `/api/sync/export/spotify` | Export Spotify playlists           |
+| `POST` | `/api/sync/export/ytmusic` | Export YouTube Music playlists     |
+| `POST` | `/api/sync/import/spotify` | Import playlists to Spotify        |
+| `POST` | `/api/sync/import/ytmusic` | Import playlists to YouTube Music  |
 
 ---
 
