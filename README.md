@@ -29,14 +29,16 @@ Before deploying, ensure you have the following:
 ## Installation
 
 1. **Clone the Repository**
+
    ```bash
    git clone https://github.com/yourusername/musync.git
    cd musync
    ```
 
 2. **Configuration**
-   
+
    Create a `.env` file in the root directory:
+
    ```env
    CLIENT_ID=your_spotify_client_id
    CLIENT_SECRET=your_spotify_client_secret
@@ -46,6 +48,7 @@ Before deploying, ensure you have the following:
    Place your Google OAuth credentials file in the root directory and rename it to `client.json`.
 
 3. **Build and Run**
+
    ```bash
    docker-compose up --build -d
    ```
@@ -70,9 +73,11 @@ MuSync/
 ## Screenshots
 
 ### Dashboard
+
 ![Dashboard](docs/screenshots/dashboard.png)
 
 ### Sync Interface
+
 ![Sync Interface](docs/screenshots/sync-panel.png)
 
 ## License
