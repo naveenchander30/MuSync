@@ -1,263 +1,360 @@
-# MuSync
+# 🎵 MuSync
 
-MuSync is a personal music synchronization tool that exports and imports playlists and liked songs between **Spotify** and **YouTube Music**.  
-The project is designed with a strong focus on **reliability under long-running operations**, **correct OAuth token lifecycle management**, and **clear observability of sync progress and failures**.
+> **Transfer playlists seamlessly between Spotify and YouTube Music**
 
-This repository represents an incremental evolution of an already working system into a more **robust, maintainable, and production-minded project**, suitable for technical evaluation (e.g., Google STEP).
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)](https://www.python.org/)
+[![React](https://img.shields.io/badge/React-18+-61dafb.svg)](https://reactjs.org/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)
 
----
-
-## Motivation
-
-Most playlist migration tools:
-
-- Break mid-run due to expired OAuth tokens
-- Silently skip tracks without explaining why
-- Provide little visibility into what actually happened during a sync
-
-MuSync was built to address these issues by:
-
-- Treating authentication as a first-class system component
-- Making failures explicit and inspectable
-- Designing for long-running syncs from the beginning
+MuSync is a modern, production-ready music synchronization tool that makes transferring your playlists between Spotify and YouTube Music effortless. Built with reliability, performance, and user experience at its core.
 
 ---
 
-## Key Features
+## ✨ Features
 
-- Export playlists and liked songs from Spotify and YouTube Music
-- Import playlists and liked songs across platforms
-- Dedicated authentication service with automatic token refresh
-- Heuristic-based cross-platform track matching with confidence scoring
-- GUI interface with real-time progress and failure visibility
-- Designed to handle large personal music libraries reliably
+- 🔄 **Bidirectional Sync** - Transfer playlists between Spotify and YouTube Music in both directions
+- 🎯 **Smart Matching** - Advanced fuzzy matching algorithm with confidence scoring
+- 📊 **Real-Time Dashboard** - Beautiful, modern UI with live progress tracking
+- ⚡ **High Performance** - Batch processing with concurrent operations and rate limiting
+- 🔒 **Secure Authentication** - OAuth 2.0 flow with automatic token refresh
+- 💾 **Backup & Export** - Save your playlists locally as JSON files
+- 🐳 **Docker Ready** - One-command deployment with Docker Compose
+- 📝 **Activity Logs** - Detailed logging of every sync operation
 
 ---
 
-## High-Level Architecture
+## 📸 Screenshots
+
+### Landing Page
+> *Beautiful hero section with clear call-to-action*
+
+![Landing Page](docs/screenshots/landing-page.png)
+
+### Dashboard
+> *Real-time sync statistics and activity logs*
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Sync Control Panel
+> *One-click actions for all sync operations*
+
+![Sync Panel](docs/screenshots/sync-panel.png)
+
+---
+
+## 🏗️ Architecture
 
 ```
-GUI / Import–Export Logic
-          |
-          v
-Auth Server (OAuth + Refresh)
-          |
-          v
-Spotify / YouTube Music APIs
+┌─────────────────────────────┐
+│   Render (Cloud Auth)       │
+│   - OAuth Callbacks         │  ← Registered with Spotify/Google APIs
+│   - Token Management        │
+└──────────────┬──────────────┘
+               │ Shares tokens.json
+               ↓
+┌─────────────────────────────┐
+│   Docker (Local/Cloud)      │
+│  ┌────────────────────────┐ │
+│  │  React Frontend        │ │  ← Modern UI (Port 3000)
+│  │  - Landing Page        │ │
+│  │  - Dashboard           │ │
+│  │  - Real-time Updates   │ │
+│  └────────────────────────┘ │
+│  ┌────────────────────────┐ │
+│  │  Flask REST API        │ │  ← Backend (Port 5001)
+│  │  - Sync Endpoints      │ │
+│  │  - Status Management   │ │
+│  └────────────────────────┘ │
+│  ┌────────────────────────┐ │
+│  │  Sync Engine           │ │
+│  │  - Batch Processing    │ │
+│  │  - Rate Limiting       │ │
+│  │  - Track Matching      │ │
+│  └────────────────────────┘ │
+└─────────────────────────────┘
 ```
 
-### Core Design Principle
+### Tech Stack
 
-Authentication and token lifecycle management are isolated in a **dedicated auth service**, while all import/export logic runs client-side.
+**Backend:**
+- Python 3.11+
+- Flask (REST API)
+- Threading (Background Tasks)
+- RapidFuzz (Fuzzy Matching)
+- Spotipy & ytmusicapi (API Clients)
 
-This separation:
+**Frontend:**
+- React 18
+- Vite (Build Tool)
+- Tailwind CSS (Styling)
+- Axios (HTTP Client)
 
-- Prevents token-expiry failures during long runs
-- Avoids duplicating refresh logic across scripts
-- Keeps sensitive credentials out of the main application
-
----
-
-## Token Lifecycle Management (Quantified)
-
-### Problem
-
-Spotify access tokens expire after **1 hour**.  
-Early versions of the project failed mid-run when exporting or importing large libraries.
-
-### Solution
-
-- Centralized token storage and refresh in a Flask-based auth server
-- Proactive refresh ~60 seconds before expiry
-- Client-side retry when a token expires mid-request
-
-### Results
-
-- Successfully synced libraries with **2,000+ tracks** in a single run
-- Eliminated **100% of observed token-expiry failures**
-- Reduced OAuth handling logic from **multiple scripts → one service**
+**Infrastructure:**
+- Docker & Docker Compose
+- Nginx (Production Server)
+- OAuth 2.0 (Authentication)
 
 ---
 
-## Track Matching Strategy (Quantified)
+## 🚀 Quick Start
 
-Music platforms often represent the same track with slightly different metadata (live versions, remasters, featured artists, punctuation differences).
+### Prerequisites
 
-### Matching Pipeline
+- Docker & Docker Compose installed
+- Spotify Developer Account ([Create one](https://developer.spotify.com/dashboard))
+- Google Cloud OAuth credentials ([Setup guide](https://console.cloud.google.com))
 
-1. **Normalization**
+### 1. Clone the Repository
 
-   - Unicode normalization
-   - Removal of punctuation and parenthetical tags
-   - Stripping of common terms such as `feat.`, `ft.`, `remastered`, `live`
-
-2. **Scoring**
-
-   - Fuzzy title similarity (token-based)
-   - Weighted artist overlap
-   - Penalty for excessively long or noisy titles
-
-3. **Confidence Thresholds**
-   - High-confidence matches are imported automatically
-   - Low-confidence matches are logged as failures for review
-
-### Results (on test libraries)
-
-- **85–92% automatic match rate** across platforms
-- **<10% of tracks flagged** as low-confidence instead of silently skipped
-- All unmatched tracks recorded with explicit failure reasons
-
-This keeps the system explainable and debuggable without introducing machine learning dependencies.
-
----
-
-## GUI & Observability (Quantified)
-
-MuSync includes a lightweight **Tkinter-based GUI** to monitor sync operations.
-
-### What the GUI Shows
-
-- Currently processed playlist
-- Count of successfully added tracks
-- Count of failed tracks
-- Continuous progress updates during long runs
-
-### Impact
-
-- Reduced debugging time from **manual log inspection → immediate visual feedback**
-- Enabled identification of recurring failure patterns (e.g., live versions, regional releases)
-- Made long syncs (**30–60 minutes**) easy to monitor without CLI output spam
-
----
-
-## Project Structure
-
-```
-musync/
-├── auth/              # OAuth server and token storage
-├── clients/           # Spotify and YTMusic API wrappers
-├── matching/          # Track normalization and scoring
-├── sync/              # Import / export logic
-├── gui/               # Tkinter GUI
-├── config.py          # Configuration management
-└── requirements.txt   # Python dependencies
+```bash
+git clone https://github.com/yourusername/MuSync.git
+cd MuSync
 ```
 
-Each directory has a single, clearly defined responsibility.
+### 2. Configure Environment
 
----
+```bash
+cp .env.example .env
+```
 
-## Environment Configuration
-
-MuSync uses environment variables for all credentials and deployment-specific settings.
-
-### `.env.example`
+Edit `.env` with your credentials:
 
 ```env
-# Base URL of the authentication service
-MUSYNC_AUTH_SERVER=
+# Auth Server (Already deployed on Render)
+MUSYNC_AUTH_SERVER=https://musync-k60r.onrender.com
 
-# Optional shared secret for auth server access
-MUSYNC_API_KEY=
+# Spotify OAuth (Get from https://developer.spotify.com/dashboard)
+CLIENT_ID=your_spotify_client_id
+CLIENT_SECRET=your_spotify_client_secret
 
-# Spotify OAuth
-CLIENT_ID=
-CLIENT_SECRET=
-
-# Auth server public URL (used for OAuth redirects)
-AUTH_BASE_URL=
-
-# Google / YouTube Music OAuth config file
-GOOGLE_OAUTH_CLIENT_FILE=
+# Google OAuth (Get from https://console.cloud.google.com)
+GOOGLE_OAUTH_CLIENT_FILE=client.json
 ```
 
-Copy `.env.example` to `.env` and populate it with your own credentials.
+### 3. Add OAuth Credentials
+
+Place your Google OAuth credentials in `client.json` at the root directory:
+
+```json
+{
+  "installed": {
+    "client_id": "your_client_id",
+    "client_secret": "your_client_secret",
+    "redirect_uris": ["http://localhost:8080/"],
+    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+    "token_uri": "https://oauth2.googleapis.com/token"
+  }
+}
+```
+
+### 4. Launch with Docker
+
+```bash
+docker-compose up -d
+```
+
+### 5. Access MuSync
+
+Open your browser and navigate to:
+- **Frontend:** [http://localhost:3000](http://localhost:3000)
+- **API:** [http://localhost:5001](http://localhost:5001)
 
 ---
 
-## Running the Project
+## 📖 Usage Guide
 
-### 1. Install Dependencies
+### First-Time Setup
 
+1. **Open MuSync** at http://localhost:3000
+2. **Click "Get Started"** on the landing page
+3. **Connect Services** in the sidebar:
+   - Click "Connect" next to Spotify
+   - Click "Connect" next to YouTube Music
+4. **Complete OAuth** flows in the popup windows
+5. **Return to Dashboard** - You're ready to sync!
+
+### Syncing Playlists
+
+#### Export (Backup)
+1. Go to **Sync** tab
+2. Click **"Export from Spotify"** or **"Export from YouTube Music"**
+3. Wait for completion - playlists saved to `playlists.json`
+
+#### Import (Restore)
+1. Ensure you have exported playlists first
+2. Go to **Sync** tab
+3. Click **"Import to Spotify"** or **"Import to YouTube Music"**
+4. Monitor progress in real-time
+
+### Monitoring
+
+- **Dashboard** shows:
+  - Total tracks added
+  - Failed tracks (with reasons)
+  - Current playlist being processed
+  - Live activity logs
+
+---
+
+## 🛠️ Development
+
+### Running Locally (Without Docker)
+
+**Backend:**
 ```bash
+# Install dependencies
 pip install -r requirements.txt
+
+# Run Flask API
+python api.py
 ```
 
-### 2. Start the Authentication Server
-
+**Frontend:**
 ```bash
-python -m auth.server
+cd frontend
+
+# Install dependencies
+npm install
+
+# Run dev server
+npm run dev
 ```
 
-Or navigate to the auth directory:
+Access:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5001
 
-```bash
-cd auth
-python server.py
-cd ..
+### Project Structure
+
+```
+MuSync/
+├── frontend/                # React application
+│   ├── src/
+│   │   ├── components/     # React components
+│   │   │   ├── LandingPage.jsx
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── SyncPanel.jsx
+│   │   │   └── Sidebar.jsx
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── package.json
+│   └── tailwind.config.js
+├── auth/                    # OAuth authentication
+│   ├── server.py           # Flask auth server
+│   └── token_store.py      # Token management
+├── clients/                 # API clients
+│   ├── spotify_client.py
+│   └── ytmusic_client.py
+├── matching/                # Track matching logic
+│   ├── normalize.py
+│   └── scorer.py
+├── sync/                    # Sync operations
+│   ├── batch_processor.py  # Batch processing
+│   ├── spotify_export.py
+│   ├── spotify_import.py
+│   ├── ytmusic_export.py
+│   └── ytmusic_import.py
+├── api.py                   # Main Flask API
+├── state.py                 # State management
+├── config.py                # Configuration
+├── docker-compose.yml       # Docker orchestration
+├── Dockerfile.backend       # Backend container
+├── Dockerfile.frontend      # Frontend container
+└── requirements.txt         # Python dependencies
 ```
 
-### 3. Run the GUI
+---
 
-```bash
-python gui/app.py
-```
+## 🔐 Authentication Flow
+
+MuSync uses a hybrid authentication approach:
+
+1. **User clicks "Connect"** in the sidebar
+2. **Browser redirects** to Render-hosted auth server
+3. **Auth server handles OAuth** with Spotify/Google
+4. **Tokens saved** to `tokens.json` (shared volume)
+5. **Local app reads tokens** from shared file
+6. **Automatic refresh** when tokens expire
+
+**Why separate auth server?**
+- OAuth redirect URIs are registered with Spotify/Google and cannot change
+- Keeps the main app portable while auth stays stable
+- Allows for easy credential rotation
 
 ---
 
-## Remote Auth Server Deployment (Optional)
+## 📊 API Endpoints
 
-The auth server can be hosted remotely (e.g., on a VPS):
-
-- Served over HTTPS behind Nginx
-- OAuth redirect URIs updated to the public domain
-- Secrets provided via environment variables
-- Optional API key protection for token endpoints
-
-This allows clients to remain stateless while keeping refresh tokens centralized and secure.
-
----
-
-## Security Considerations (Quantified)
-
-- Refresh tokens never leave the auth server
-- Clients only receive short-lived access tokens
-- Optional API key validation for auth endpoints
-- No user data stored beyond local JSON exports
-
-### Impact
-
-- Reduced credential exposure surface to one isolated service
-- Prevented accidental token leakage across client scripts
-- Simplified OAuth credential rotation and revocation
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/health` | Health check |
+| `GET` | `/api/auth/status` | Check auth status for all services |
+| `GET` | `/api/status` | Get current sync progress |
+| `GET` | `/api/logs` | Retrieve all activity logs |
+| `POST` | `/api/logs/clear` | Clear activity logs |
+| `POST` | `/api/sync/export/spotify` | Export Spotify playlists |
+| `POST` | `/api/sync/export/ytmusic` | Export YouTube Music playlists |
+| `POST` | `/api/sync/import/spotify` | Import playlists to Spotify |
+| `POST` | `/api/sync/import/ytmusic` | Import playlists to YouTube Music |
 
 ---
 
-## Known Limitations
+## 🤝 Contributing
 
-- Matching is heuristic-based and may miss rare edge cases
-- GUI is intentionally minimal
-- No database backend (by design)
+Contributions are welcome! This project was built as a technical demonstration for Google STEP, but improvements and suggestions are appreciated.
 
-These tradeoffs keep the project focused, understandable, and easy to audit.
+### Development Guidelines
 
----
-
-## Why This Project Exists
-
-This project was built to explore and demonstrate:
-
-- OAuth token lifecycle management in real-world conditions
-- Designing systems that remain reliable during long-running operations
-- Making failures visible and explainable
-- Incrementally improving a working system rather than rewriting it
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ---
 
-## Future Improvements
+## 📝 License
 
-- Dry-run mode for imports
-- Exportable failure reports
-- Batched API writes for faster imports
-- Additional music platforms
-- Optional persistence layer for sync history
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **Spotify Web API** for music streaming integration
+- **YouTube Music API** for video music platform support
+- **RapidFuzz** for high-performance fuzzy string matching
+- **Tailwind CSS** for modern, responsive styling
+- **React** for building interactive user interfaces
+
+---
+
+## 📞 Support
+
+If you encounter any issues or have questions:
+
+1. Check the [Issues](https://github.com/yourusername/MuSync/issues) page
+2. Review existing discussions
+3. Open a new issue with detailed information
+
+---
+
+## 🎯 Roadmap
+
+- [ ] Support for Apple Music
+- [ ] Automatic periodic sync
+- [ ] Playlist collaboration features
+- [ ] Mobile app (React Native)
+- [ ] Advanced filtering and matching options
+- [ ] Export to CSV/Excel formats
+
+---
+
+<div align="center">
+
+**Made with ❤️ for seamless music synchronization**
+
+[⬆ Back to Top](#-musync)
+
+</div>

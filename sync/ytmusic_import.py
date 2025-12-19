@@ -4,6 +4,10 @@ from clients.ytmusic_client import YTMusicClient
 from sync.batch_processor import BatchProcessor, RateLimiter, create_search_function
 
 def import_ytmusic(auth_server, state=None, progress_cb=None):
+    import os
+    if not os.path.exists("playlists.json"):
+        raise FileNotFoundError("playlists.json not found. Please export playlists first.")
+    
     client = YTMusicClient(auth_server)
 
     with open("playlists.json") as f:

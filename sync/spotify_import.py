@@ -4,6 +4,10 @@ from clients.spotify_client import SpotifyClient
 from sync.batch_processor import BatchProcessor, RateLimiter, create_search_function
 
 def import_spotify(auth_server, state=None, progress_cb=None):
+    import os
+    if not os.path.exists("playlists.json"):
+        raise FileNotFoundError("playlists.json not found. Please export playlists first.")
+    
     client = SpotifyClient(auth_server)
     me = client.get("https://api.spotify.com/v1/me").json()
 

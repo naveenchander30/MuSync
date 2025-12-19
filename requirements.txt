@@ -1,7 +1,8 @@
 flask
+flask-cors
 requests
 rapidfuzz
 ytmusicapi
 google-auth-oauthlib
 python-dotenv
-ttkbootstrap
+streamlit
