@@ -4,6 +4,9 @@ import threading
 import time
 from pathlib import Path
 import sys
+from collections import deque
+import pickle
+import os
 
 # Add current directory to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -21,7 +24,7 @@ CORS(app)  # Enable CORS for React frontend
 
 # Global state
 sync_state = SyncState()
-sync_logs = []
+sync_logs = deque(maxlen=1000)
 is_running = False
 current_task = None
 
@@ -40,6 +43,16 @@ def log_message(msg):
 
 def check_auth(service):
     """Check if service is authenticated"""
+    if service == "ytmusic":
+        try:
+            if not os.path.exists("yt_creds.pkl"):
+                return False
+            with open("yt_creds.pkl", "rb") as f:
+                creds = pickle.load(f)
+            return creds and creds.valid
+        except Exception:
+            return False
+            
     token = store.load(service)
     return token is not None and not store.is_expired(token)
 
@@ -98,7 +111,7 @@ def get_status():
             "current_playlist": sync_state.current_playlist,
             "added": len(sync_state.added),
             "failed": len(sync_state.failed),
-            "logs": sync_logs[-50:]  # Last 50 logs
+            "logs": list(sync_logs)[-50:]  # Last 50 logs
         })
 
 
@@ -106,7 +119,7 @@ def get_status():
 def get_logs():
     """Get all logs"""
     with state_lock:
-        return jsonify({"logs": sync_logs})
+        return jsonify({"logs": list(sync_logs)})
 
 
 @app.route('/api/logs/clear', methods=['POST'])
