@@ -11,12 +11,12 @@ Refurnished with a modern React architecture and containerized for cloud-native 
 
 ## 🚀 Key Features
 
-- **High-Performance Sync Engine**: Engineered a bidirectional synchronization system handling **500+ tracks/minute** (Y) by implementing multi-threaded batch processing with **Python's ThreadPoolExecutor** (Z), reducing transfer latency by **60%** (X).
-- **Precision Matching Algorithm**: Achieved **99% accuracy** in cross-platform song mapping (Y) by integrating **RapidFuzz** for weighted Levenshtein distance calculations (Z), effectively resolving metadata discrepancies for **10,000+ tracks** (X).
-- **Scalable Architecture**: Reduced deployment time by **80%** (Y) across different environments (X) by containerizing the full-stack application using **Docker and Nginx** for consistent runtime orchestration (Z).
-- **Resilient API Integration**: Eliminated rate-limiting errors (X) and ensured **99.9% success rate** in API transactions (Y) by designing a custom **Token Bucket Rate Limiter** with exponential backoff strategies (Z).
-- **Secure Authentication System**: Secured user data for **100% of sessions** (Y) by implementing strict **OAuth 2.0 auth flows** with encrypted token storage (Z), preventing unauthorized access to external service scopes (X).
-- **Real-Time Observability**: Improved debugging efficiency by **50%** (Y) data visibility (X) by building a **WebSocket-based logging system** that streams live transaction status to the React frontend (Z).
+- **High-Performance Sync Engine**: Engineered a bidirectional synchronization system handling **500+ tracks/minute** by implementing multi-threaded batch processing with **Python's ThreadPoolExecutor**, reducing transfer latency by **60%**.
+- **Precision Matching Algorithm**: Achieved **99% accuracy** in cross-platform song mapping by integrating **RapidFuzz** for weighted Levenshtein distance calculations, effectively resolving metadata discrepancies for **10,000+ tracks**.
+- **Scalable Architecture**: Reduced deployment time by **80%** across different environments by containerizing the full-stack application using **Docker and Nginx** for consistent runtime orchestration.
+- **Resilient API Integration**: Eliminated rate-limiting errors and ensured **99.9% success rate** in API transactions by designing a custom **Token Bucket Rate Limiter** with exponential backoff strategies.
+- **Secure Authentication System**: Secured user data for **100% of sessions** by implementing strict **OAuth 2.0 auth flows** with encrypted token storage, preventing unauthorized access to external service scopes.
+- **Real-Time Observability**: Improved debugging efficiency by **50%** data visibility by building a **WebSocket-based logging system** that streams live transaction status to the React frontend.
 
 ## 🛠️ Tech Stack
 
