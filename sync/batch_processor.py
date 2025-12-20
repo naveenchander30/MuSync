@@ -23,6 +23,7 @@ class RateLimiter:
     
     def wait_if_needed(self):
         """Wait if rate limit would be exceeded"""
+        wait_time = 0
         with self.lock:
             now = time.time()
             # Remove calls outside the time window
@@ -34,13 +35,14 @@ class RateLimiter:
                 oldest_call = min(self.calls)
                 wait_time = self.time_window - (now - oldest_call)
                 if wait_time > 0:
-                    time.sleep(wait_time + 0.1)  # Add small buffer
-                    # Clean up again after waiting
-                    now = time.time()
-                    self.calls = [call_time for call_time in self.calls 
-                                 if now - call_time < self.time_window]
-            
-            self.calls.append(now)
+                    wait_time += 0.1  # Add small buffer
+            else:
+                 self.calls.append(now)
+
+        if wait_time > 0:
+            time.sleep(wait_time)
+            # Recursive call to check/register again after waiting
+            self.wait_if_needed()
 
 
 class BatchProcessor:
