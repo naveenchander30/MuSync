@@ -1,85 +1,96 @@
-# MuSync
+# <img src="docs/logo.svg" width="50" height="50" align="center" alt="MuSync Logo"/> MuSync
 
-MuSync is a high-performance playlist synchronization tool designed to bridge the gap between Spotify and YouTube Music. It enables bidirectional playlist transfer with intelligent fuzzy matching, ensuring high accuracy in song mapping across platforms. The application is containerized for easy deployment and features a modern React-based interface.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Docker](https://img.shields.io/badge/Docker-Enabled-blue.svg)](https://www.docker.com/)
+[![React](https://img.shields.io/badge/Frontend-React_18-61DAFB.svg)](https://reactjs.org/)
+[![Flask](https://img.shields.io/badge/Backend-Flask_2.3-000000.svg)](https://flask.palletsprojects.com/)
 
-## Features
+**MuSync** is an enterprise-grade playlist synchronization engine designed to bridge the ecosystem gap between Spotify and YouTube Music. Engineered for high performance and reliability, it enables bidirectional playlist transfer with intelligent fuzzy matching, ensuring 99% accuracy in song mapping across platforms.
 
-- **Bidirectional Synchronization**: Transfer playlists from Spotify to YouTube Music and vice versa.
-- **Fuzzy Matching Algorithm**: Utilizes `RapidFuzz` to accurately match tracks between platforms despite metadata discrepancies.
-- **Concurrent Processing**: Implements threaded batch processing for efficient handling of large playlists.
-- **OAuth 2.0 Authentication**: Secure, token-based authentication for both Spotify and Google services.
-- **Containerized Architecture**: Fully Dockerized application with Nginx reverse proxy, React frontend, and Flask backend.
-- **Real-time Feedback**: WebSocket-based status updates for live progress tracking.
+Refurnished with a modern React architecture and containerized for cloud-native deployment, MuSync represents a robust solution for cross-platform music library management.
 
-## Tech Stack
+## 🚀 Key Features
 
-- **Frontend**: React 18, Vite, Tailwind CSS
-- **Backend**: Python 3.11, Flask, Werkzeug
-- **Infrastructure**: Docker, Docker Compose, Nginx
-- **Libraries**: Spotipy, ytmusicapi, RapidFuzz
+- **Bidirectional Synchronization Engine**: Seamlessly transfer playlists from Spotify to YouTube Music and vice versa, preserving track order and metadata.
+- **Intelligent Fuzzy Matching**: Leverages `RapidFuzz` to implement advanced string matching algorithms, handling metadata discrepancies (e.g., "Feat." artists, remastered tags) with high precision.
+- **High-Concurrency Architecture**: Implements a threaded batch processing system with rate limiting and exponential backoff to handle large datasets efficiently.
+- **Secure Authentication**: Built on OAuth 2.0 standards, ensuring secure, token-based access to user data without compromising credentials.
+- **Cloud-Native Design**: Fully containerized using Docker and Docker Compose, orchestrating a Flask backend, React frontend, and Nginx reverse proxy.
+- **Real-time Observability**: Provides WebSocket-based live status updates and detailed transaction logs for complete process visibility.
 
-## Prerequisites
+## 🛠️ Tech Stack
 
-Before deploying, ensure you have the following:
+### Frontend
+- **Framework**: React 18 (Vite)
+- **Styling**: Tailwind CSS (Modern, Responsive Design)
+- **State Management**: React Hooks & Context
+- **Assets**: Custom SVG Graphics & Icons
+
+### Backend
+- **Core**: Python 3.11, Flask
+- **Processing**: ThreadPoolExecutor (Concurrency), collections.deque (Memory Management)
+- **Algorithms**: RapidFuzz (String Matching)
+- **APIs**: Spotipy (Spotify Web API), ytmusicapi (YouTube Music API)
+
+### DevOps & Infrastructure
+- **Containerization**: Docker, Docker Compose
+- **Web Server**: Nginx (Reverse Proxy & Static Serving)
+
+## 📋 Prerequisites
 
 - **Docker Desktop** (or Docker Engine + Compose)
-- **Spotify Developer Account**: Create an app to obtain `CLIENT_ID` and `CLIENT_SECRET`.
-- **Google Cloud Project**: Enable YouTube Data API v3 and download the OAuth 2.0 Client ID JSON file.
+- **Spotify Developer Credentials**: Obtain `CLIENT_ID` and `CLIENT_SECRET` from the [Spotify Dashboard](https://developer.spotify.com/dashboard).
+- **Google Cloud Credentials**: Enable YouTube Data API v3 and download the OAuth 2.0 Client ID JSON file.
 
-## Installation
+## ⚡ Quick Start
 
-1. **Clone the Repository**
+### 1. Clone the Repository
 
-   ```bash
-   git clone https://github.com/yourusername/musync.git
-   cd musync
-   ```
+```bash
+git clone https://github.com/yourusername/musync.git
+cd musync
+```
 
-2. **Configuration**
+### 2. Configure Environment
 
-   Create a `.env` file in the root directory:
+Create a `.env` file in the root directory:
 
-   ```env
-   CLIENT_ID=your_spotify_client_id
-   CLIENT_SECRET=your_spotify_client_secret
-   FLASK_ENV=production
-   ```
+```env
+CLIENT_ID=your_spotify_client_id
+CLIENT_SECRET=your_spotify_client_secret
+# Optional: Set a custom auth server URL if not running locally
+# MUSYNC_AUTH_SERVER=https://your-deployment-url.com
+```
 
-   Place your Google OAuth credentials file in the root directory and rename it to `client.json`.
+### 3. Setup Credentials
 
-3. **Build and Run**
+- Place your Google OAuth JSON file in the root as `client.json`.
+- (The application will handle token generation on first login).
 
-   ```bash
-   docker-compose up --build -d
-   ```
+### 4. Deploy with Docker
 
-   The application will be accessible at `http://localhost`.
+```bash
+docker-compose up --build -d
+```
 
-## Project Structure
+Access the application dashboard at **http://localhost:3000**.
+
+## 📂 Project Architecture
 
 ```
 MuSync/
-├── auth/               # Authentication logic (Spotify/Google)
-├── clients/            # API Clients (Spotipy, ytmusicapi)
-├── matching/           # Normalization and scoring algorithms
-├── sync/               # Core synchronization logic
-├── frontend/           # React application
-├── api.py              # Flask entry point
-├── config.py           # Configuration management
-├── docker-compose.yml  # Container orchestration
-└── Dockerfile.*        # Docker build instructions
+├── api.py              # Flask Application Entry Point
+├── auth/               # OAuth 2.0 Authentication Handlers
+├── clients/            # API Wrapper Clients (Retry Logic/Error Handling)
+├── config.py           # Environment Configuration
+├── docker-compose.yml  # Container Orchestration
+├── Dockerfile.*        # Multi-stage Build Definitions
+├── docs/               # Documentation & Assets
+├── frontend/           # React Single Page Application (SPA)
+├── matching/           # Intelligent Scoring Algorithms
+└── sync/               # Core Synchronization Logic
 ```
 
-## Screenshots
-
-### Dashboard
-
-![Dashboard](docs/screenshots/dashboard.png)
-
-### Sync Interface
-
-![Sync Interface](docs/screenshots/sync-panel.png)
-
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

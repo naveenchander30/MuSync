@@ -11,6 +11,7 @@ services:
       - ./playlists.json:/app/playlists.json
       - ./credentials.json:/app/credentials.json
       - ./client.json:/app/client.json
+      - ./yt_creds.pkl:/app/yt_creds.pkl
     environment:
       - MUSYNC_AUTH_SERVER=${MUSYNC_AUTH_SERVER:-https://musync-k60r.onrender.com}
       - CLIENT_ID=${CLIENT_ID}
