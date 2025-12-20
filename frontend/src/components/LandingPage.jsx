@@ -1,3 +1,5 @@
+import Logo from "./Logo";
+
 export default function LandingPage({ onGetStarted }) {
   const features = [
     {
@@ -70,9 +72,9 @@ export default function LandingPage({ onGetStarted }) {
         <div className="relative max-w-7xl mx-auto px-6 py-24 md:py-32">
           <div className="text-center space-y-8">
             {/* Logo/Title */}
-            <div className="inline-flex items-center gap-3 bg-white/5 border border-white/10 rounded-full px-6 py-3 backdrop-blur-sm">
-              <span className="text-2xl">🎵</span>
-              <span className="font-bold text-lg">MuSync</span>
+            {/* Logo/Title */}
+            <div className="inline-block hover:scale-105 transition-transform duration-300">
+              <Logo className="w-12 h-12" />
             </div>
 
             {/* Main Heading */}
@@ -218,8 +220,7 @@ export default function LandingPage({ onGetStarted }) {
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">🎵</span>
-              <span className="font-bold text-lg">MuSync</span>
+              <Logo className="w-8 h-8" />
               <span className="text-gray-600 ml-2">v2.0</span>
             </div>
             <p className="text-gray-500 text-sm">

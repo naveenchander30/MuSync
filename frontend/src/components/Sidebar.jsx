@@ -1,10 +1,13 @@
+import Logo from "./Logo";
+import { DashboardIcon, SyncIcon, SpotifyIcon, YTMusicIcon } from "./Icons";
+
 const AUTH_SERVER =
   import.meta.env.VITE_AUTH_SERVER || "https://musync-k60r.onrender.com";
 
 export default function Sidebar({ currentPage, onNavigate, authStatus }) {
   const navItems = [
-    { id: "dashboard", icon: "📊", label: "Dashboard" },
-    { id: "sync", icon: "🔄", label: "Sync" },
+    { id: "dashboard", icon: DashboardIcon, label: "Dashboard" },
+    { id: "sync", icon: SyncIcon, label: "Sync" },
   ];
 
   const handleAuth = (service) => {
@@ -16,11 +19,8 @@ export default function Sidebar({ currentPage, onNavigate, authStatus }) {
     <div className="w-72 bg-gradient-to-b from-dark-100 to-dark-300 border-r border-white/10 flex flex-col shadow-2xl">
       {/* Header */}
       <div className="p-8 border-b border-white/10">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="text-4xl">🎵</div>
-          <h1 className="text-3xl font-black text-gradient">MuSync</h1>
-        </div>
-        <p className="text-gray-500 text-sm uppercase tracking-widest font-semibold">
+        <Logo className="w-10 h-10" />
+        <p className="text-gray-500 text-sm uppercase tracking-widest font-semibold mt-4">
           Music Synchronizer
         </p>
       </div>
@@ -32,13 +32,12 @@ export default function Sidebar({ currentPage, onNavigate, authStatus }) {
             <button
               key={item.id}
               onClick={() => onNavigate(item.id)}
-              className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 font-semibold text-lg ${
-                currentPage === item.id
-                  ? "bg-primary text-white shadow-lg shadow-primary/30"
-                  : "text-gray-400 hover:bg-white/5 hover:text-white"
-              }`}
+              className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 font-semibold text-lg ${currentPage === item.id
+                ? "bg-primary text-white shadow-lg shadow-primary/30"
+                : "text-gray-400 hover:bg-white/5 hover:text-white"
+                }`}
             >
-              <span className="text-2xl">{item.icon}</span>
+              <item.icon className="w-6 h-6" />
               <span>{item.label}</span>
             </button>
           ))}
@@ -55,19 +54,14 @@ export default function Sidebar({ currentPage, onNavigate, authStatus }) {
           <div className="bg-white/5 rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/1/19/Spotify_logo_without_text.svg"
-                  alt="Spotify"
-                  className="w-6 h-6"
-                />
+                <SpotifyIcon className="w-6 h-6" />
                 <span className="font-semibold">Spotify</span>
               </div>
               <div
-                className={`w-3 h-3 rounded-full ${
-                  authStatus.spotify
-                    ? "bg-primary shadow-lg shadow-primary/50 animate-pulse"
-                    : "bg-gray-600"
-                }`}
+                className={`w-3 h-3 rounded-full ${authStatus.spotify
+                  ? "bg-primary shadow-lg shadow-primary/50 animate-pulse"
+                  : "bg-gray-600"
+                  }`}
               />
             </div>
             {!authStatus.spotify && (
@@ -84,19 +78,14 @@ export default function Sidebar({ currentPage, onNavigate, authStatus }) {
           <div className="bg-white/5 rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/6/6a/Youtube_Music_icon.svg"
-                  alt="YouTube Music"
-                  className="w-6 h-6"
-                />
+                <YTMusicIcon className="w-6 h-6" />
                 <span className="font-semibold">YT Music</span>
               </div>
               <div
-                className={`w-3 h-3 rounded-full ${
-                  authStatus.ytmusic
-                    ? "bg-primary shadow-lg shadow-primary/50 animate-pulse"
-                    : "bg-gray-600"
-                }`}
+                className={`w-3 h-3 rounded-full ${authStatus.ytmusic
+                  ? "bg-primary shadow-lg shadow-primary/50 animate-pulse"
+                  : "bg-gray-600"
+                  }`}
               />
             </div>
             {!authStatus.ytmusic && (
@@ -117,6 +106,6 @@ export default function Sidebar({ currentPage, onNavigate, authStatus }) {
           v2.0 • Modern Edition
         </p>
       </div>
-    </div>
+    </div >
   );
 }
