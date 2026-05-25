@@ -12,11 +12,11 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
 
-  backend:
+  musync:
     build:
       context: .
-      dockerfile: Dockerfile.backend
-    container_name: musync-backend
+      dockerfile: Dockerfile
+    container_name: musync
     ports:
       - "5001:5001"
     environment:
@@ -28,7 +28,8 @@ services:
       - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/musync
       - MASTER_PASSWORD=${MASTER_PASSWORD:-change_me_in_production}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_started
     restart: unless-stopped
 
 volumes:
