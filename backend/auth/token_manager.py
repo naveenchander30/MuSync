@@ -62,7 +62,7 @@ class TokenManager:
             return False
         
         if not credential.access_token_expiry:
-            return True
+            return False
         
         # Token valid if expiry > 5 minutes from now
         expiry_buffer = timedelta(minutes=5)
