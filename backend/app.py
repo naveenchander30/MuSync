@@ -29,7 +29,8 @@ def create_app():
     
     # Initialize scheduler
     from backend.api.routes import scheduler_manager
-    scheduler_manager.initialize_jobs()
+    with app.app_context():
+        scheduler_manager.initialize_jobs()
     
     # Create default user if none exists
     with app.app_context():
