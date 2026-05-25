@@ -1,4 +1,17 @@
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: musync-postgres
+    environment:
+      POSTGRES_DB: musync
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
   backend:
     build:
       context: .
@@ -6,30 +19,17 @@ services:
     container_name: musync-backend
     ports:
       - "5001:5001"
-    volumes:
-      - ./tokens.json:/app/tokens.json
-      - ./playlists.json:/app/playlists.json
-      - ./credentials.json:/app/credentials.json
-      - ./client.json:/app/client.json
-      - ./yt_creds.pkl:/app/yt_creds.pkl
     environment:
-      - MUSYNC_AUTH_SERVER=${MUSYNC_AUTH_SERVER:-https://musync-k60r.onrender.com}
-      - CLIENT_ID=${CLIENT_ID}
-      - CLIENT_SECRET=${CLIENT_SECRET}
-      - GOOGLE_OAUTH_CLIENT_FILE=${GOOGLE_OAUTH_CLIENT_FILE:-client.json}
-    restart: unless-stopped
-
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
-    container_name: musync-frontend
-    ports:
-      - "3000:80"
+      - AUTH_BASE_URL=${AUTH_BASE_URL:-http://localhost:5001}
+      - SPOTIFY_CLIENT_ID=${SPOTIFY_CLIENT_ID}
+      - SPOTIFY_CLIENT_SECRET=${SPOTIFY_CLIENT_SECRET}
+      - GOOGLE_OAUTH_CLIENT_ID=${GOOGLE_OAUTH_CLIENT_ID}
+      - GOOGLE_OAUTH_CLIENT_SECRET=${GOOGLE_OAUTH_CLIENT_SECRET}
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/musync
+      - MASTER_PASSWORD=${MASTER_PASSWORD:-change_me_in_production}
     depends_on:
-      - backend
+      - postgres
     restart: unless-stopped
 
 volumes:
-  tokens:
-  playlists:
+  postgres_data:
