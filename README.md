@@ -1,96 +1,134 @@
-# <img src="docs/logo.svg" width="50" height="50" align="center" alt="MuSync Logo"/> MuSync
+# MuSync 2.0
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Docker](https://img.shields.io/badge/Docker-Enabled-blue.svg)](https://www.docker.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 [![React](https://img.shields.io/badge/Frontend-React_18-61DAFB.svg)](https://reactjs.org/)
-[![Flask](https://img.shields.io/badge/Backend-Flask_2.3-000000.svg)](https://flask.palletsprojects.com/)
+[![Flask](https://img.shields.io/badge/Backend-Flask_3.0-000000.svg)](https://flask.palletsprojects.com/)
+[![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-336791.svg)](https://www.postgresql.org/)
 
-**MuSync** is an enterprise-grade playlist synchronization engine designed to bridge the ecosystem gap between Spotify and YouTube Music. Engineered for high performance and reliability, it enables bidirectional playlist transfer with intelligent fuzzy matching, ensuring 99% accuracy in song mapping across platforms.
+**MuSync** is a self-hosted playlist synchronization engine that bridges Spotify and YouTube Music. You provide your own API keys, everything runs locally.
 
-Refurnished with a modern React architecture and containerized for cloud-native deployment, MuSync represents a robust solution for cross-platform music library management.
+## 🚀 Features
 
-## 🚀 Key Features
-
-- **High-Performance Sync Engine**: Engineered a bidirectional synchronization system handling **500+ tracks/minute** by implementing multi-threaded batch processing with **Python's ThreadPoolExecutor**, reducing transfer latency by **60%**.
-- **Precision Matching Algorithm**: Achieved **99% accuracy** in cross-platform song mapping by integrating **RapidFuzz** for weighted Levenshtein distance calculations, effectively resolving metadata discrepancies for **10,000+ tracks**.
-- **Scalable Architecture**: Reduced deployment time by **80%** across different environments by containerizing the full-stack application using **Docker and Nginx** for consistent runtime orchestration.
-- **Resilient API Integration**: Eliminated rate-limiting errors and ensured **99.9% success rate** in API transactions by designing a custom **Token Bucket Rate Limiter** with exponential backoff strategies.
-- **Secure Authentication System**: Secured user data for **100% of sessions** by implementing strict **OAuth 2.0 auth flows** with encrypted token storage, preventing unauthorized access to external service scopes.
-- **Real-Time Observability**: Improved debugging efficiency by **50%** data visibility by building a **WebSocket-based logging system** that streams live transaction status to the React frontend.
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **Framework**: React 18 (Vite)
-- **Styling**: Tailwind CSS (Modern, Responsive Design)
-- **State Management**: React Hooks & Context
-- **Assets**: Custom SVG Graphics & Icons
-
-### Backend
-- **Core**: Python 3.11, Flask
-- **Processing**: ThreadPoolExecutor (Concurrency), collections.deque (Memory Management)
-- **Algorithms**: RapidFuzz (String Matching)
-- **APIs**: Spotipy (Spotify Web API), ytmusicapi (YouTube Music API)
-
-### DevOps & Infrastructure
-- **Containerization**: Docker, Docker Compose
-- **Web Server**: Nginx (Reverse Proxy & Static Serving)
+- **Self-Hosted**: No external services, no cloud dependencies. Runs entirely on your machine
+- **Bidirectional Sync**: Transfer playlists both ways (Spotify ↔ YouTube Music)
+- **Smart Matching**: Conservative fuzzy matching with weighted scoring (name 60%, artist 35%, duration 5%)
+- **Scheduled Sync**: Automated sync jobs with configurable intervals via APScheduler
+- **Encrypted Tokens**: OAuth refresh tokens encrypted with AES-256-GCM
+- **Resumable Syncs**: Checkpoint system to resume failed syncs from where they stopped
+- **Real-Time Dashboard**: Monitor sync progress, view history, and manage scheduled jobs
+- **Rate-Limited**: Token bucket algorithm prevents API throttling
 
 ## 📋 Prerequisites
 
-- **Docker Desktop** (or Docker Engine + Compose)
-- **Spotify Developer Credentials**: Obtain `CLIENT_ID` and `CLIENT_SECRET` from the [Spotify Dashboard](https://developer.spotify.com/dashboard).
-- **Google Cloud Credentials**: Enable YouTube Data API v3 and download the OAuth 2.0 Client ID JSON file.
+- Docker & Docker Compose
+- Spotify Developer Account (free)
+- Google Cloud Account (free)
 
 ## ⚡ Quick Start
 
-### 1. Clone the Repository
+### 1. Get API Credentials
+
+**Spotify:**
+1. Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+2. Create an app
+3. Set Redirect URI: `http://localhost:5001/auth/spotify/callback`
+4. Copy Client ID and Client Secret
+
+**Google:**
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Enable YouTube Data API v3
+3. Create OAuth 2.0 credentials (Web application)
+4. Set Redirect URI: `http://localhost:5001/auth/ytmusic/callback`
+5. Copy Client ID and Client Secret
+
+### 2. Clone & Configure
 
 ```bash
-git clone https://github.com/yourusername/musync.git
-cd musync
+git clone https://github.com/naveenchander30/MuSync.git
+cd MuSync
+cp .env.example .env
 ```
 
-### 2. Configure Environment
-
-Create a `.env` file in the root directory:
+Edit `.env` with your credentials:
 
 ```env
-CLIENT_ID=your_spotify_client_id
-CLIENT_SECRET=your_spotify_client_secret
-# Optional: Set a custom auth server URL if not running locally
-# MUSYNC_AUTH_SERVER=https://your-deployment-url.com
+AUTH_BASE_URL=http://localhost:5001
+SPOTIFY_CLIENT_ID=your_spotify_client_id
+SPOTIFY_CLIENT_SECRET=your_spotify_client_secret
+GOOGLE_OAUTH_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+GOOGLE_OAUTH_CLIENT_SECRET=your_google_client_secret
+DATABASE_URL=postgresql://postgres:postgres@postgres:5432/musync
+MASTER_PASSWORD=your_secure_password
 ```
 
-### 3. Setup Credentials
-
-- Place your Google OAuth JSON file in the root as `client.json`.
-- (The application will handle token generation on first login).
-
-### 4. Deploy with Docker
+### 3. Start
 
 ```bash
-docker-compose up --build -d
+docker-compose up -d
 ```
 
-Access the application dashboard at **http://localhost:3000**.
+Open `http://localhost:5001` and connect your accounts.
 
-## 📂 Project Architecture
+For detailed setup instructions, see [SETUP.md](SETUP.md).
+
+## 🏗️ Architecture
+
+```
+┌─────────────────────────────────────┐
+│           Your Browser              │
+│        http://localhost:5001        │
+└────────────────┬────────────────────┘
+                 │
+                 v
+┌─────────────────────────────────────┐
+│         Flask Backend               │
+│  - OAuth handling                   │
+│  - Sync orchestration               │
+│  - APScheduler (cron jobs)          │
+│  - Encrypted token storage          │
+└────────────────┬────────────────────┘
+                 │
+        ┌────────┴────────┐
+        v                 v
+┌──────────────┐  ┌──────────────┐
+│ PostgreSQL   │  │ External APIs│
+│ Database     │  │ Spotify      │
+│ (encrypted)  │  │ YouTube Music│
+└──────────────┘  └──────────────┘
+```
+
+## 📂 Project Structure
 
 ```
 MuSync/
-├── api.py              # Flask Application Entry Point
-├── auth/               # OAuth 2.0 Authentication Handlers
-├── clients/            # API Wrapper Clients (Retry Logic/Error Handling)
-├── config.py           # Environment Configuration
-├── docker-compose.yml  # Container Orchestration
-├── Dockerfile.*        # Multi-stage Build Definitions
-├── docs/               # Documentation & Assets
-├── frontend/           # React Single Page Application (SPA)
-├── matching/           # Intelligent Scoring Algorithms
-└── sync/               # Core Synchronization Logic
+├── backend/
+│   ├── app.py                 # Flask application entry
+│   ├── config.py              # Environment configuration
+│   ├── requirements.txt       # Python dependencies
+│   ├── auth/                  # OAuth & token management
+│   ├── database/              # SQLAlchemy models
+│   ├── sync/                  # Sync engine & matching
+│   ├── scheduler/             # APScheduler integration
+│   ├── api/                   # REST API routes
+│   ├── utils/                 # Logging & helpers
+│   └── tests/                 # Test suite
+├── frontend/
+│   └── src/                   # React application
+├── docker-compose.yml         # Docker orchestration
+├── Dockerfile.backend         # Backend container
+├── SETUP.md                   # Detailed setup guide
+└── .env.example               # Environment template
+```
+
+## 🧪 Testing
+
+```bash
+cd backend
+pip install -r requirements.txt
+pytest tests/ -v
 ```
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE)
