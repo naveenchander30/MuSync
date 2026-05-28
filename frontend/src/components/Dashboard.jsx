@@ -107,7 +107,6 @@ export default function Dashboard() {
           <p className="text-gray-400 text-lg">Monitor and manage your sync operations</p>
         </div>
 
-        {/* Active Sync Banner */}
         {activeJob && (
           <div className="mb-8 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 border border-blue-500/30 rounded-2xl p-6 animate-pulse-slow">
             <div className="flex items-center justify-between">
@@ -131,11 +130,39 @@ export default function Dashboard() {
                   <div className="text-emerald-400 font-bold text-lg">+{activeJob.added_tracks || 0}</div>
                 </div>
                 <div className="w-48 h-2 bg-white/10 rounded-full overflow-hidden">
-                  <div 
+                  <div
                     className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
                     style={{ width: `${activeJob.progress_percentage}%` }}
                   />
                 </div>
+              </div>
+            </div>
+            <div className="mt-4 pt-4 border-t border-blue-500/20 flex items-center gap-4">
+              {activeJob.current_track_image_url ? (
+                <img
+                  src={activeJob.current_track_image_url}
+                  alt="Album art"
+                  className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                  <span className="text-lg">🎵</span>
+                </div>
+              )}
+              <div className="min-w-0">
+                {activeJob.current_playlist_name && (
+                  <div className="text-gray-400 text-sm truncate">
+                    Playlist: <span className="text-white">{activeJob.current_playlist_name}</span>
+                  </div>
+                )}
+                {activeJob.current_track_name && (
+                  <div className="text-gray-300 text-sm truncate mt-0.5">
+                    <span className="text-blue-400">→</span> Now: <span className="text-white font-medium">{activeJob.current_track_name}</span>
+                    {activeJob.current_track_artist && (
+                      <span className="text-gray-400"> — {activeJob.current_track_artist}</span>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
