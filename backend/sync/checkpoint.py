@@ -8,7 +8,7 @@ class CheckpointManager:
     @staticmethod
     def save_checkpoint(job_id: str, checkpoint_data: dict):
         """Save checkpoint data to database"""
-        job = SyncJob.query.get(job_id)
+        job = db.session.get(SyncJob, job_id)
         if job:
             job.checkpoint_data = checkpoint_data
             db.session.commit()
@@ -18,7 +18,7 @@ class CheckpointManager:
     @staticmethod
     def load_checkpoint(job_id: str) -> dict:
         """Load checkpoint data from database"""
-        job = SyncJob.query.get(job_id)
+        job = db.session.get(SyncJob, job_id)
         if job:
             return job.checkpoint_data or {}
         return {}
@@ -26,7 +26,7 @@ class CheckpointManager:
     @staticmethod
     def clear_checkpoint(job_id: str):
         """Clear checkpoint data after successful sync"""
-        job = SyncJob.query.get(job_id)
+        job = db.session.get(SyncJob, job_id)
         if job:
             job.checkpoint_data = {}
             db.session.commit()

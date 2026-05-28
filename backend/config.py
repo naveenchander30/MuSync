@@ -16,7 +16,7 @@ DEBUG = os.getenv("FLASK_ENV", "production") != "production"
 PORT = int(os.getenv("PORT", 5001))
 
 # Database
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/musync")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+psycopg://postgres:postgres@localhost:5432/musync")
 
 # Authentication
 AUTH_BASE_URL = os.getenv("AUTH_BASE_URL", "http://localhost:5001")
@@ -27,6 +27,7 @@ GOOGLE_OAUTH_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH_CLIENT_SECRET", "")
 
 # Encryption
 MASTER_PASSWORD = os.getenv("MASTER_PASSWORD", "change_me_in_production")
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
 
 # OAuth Scopes
 SPOTIFY_SCOPES = (

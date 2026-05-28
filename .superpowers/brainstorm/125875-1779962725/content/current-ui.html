@@ -1,0 +1,142 @@
+<h2>Current MuSync Dashboard</h2>
+<p class="subtitle">This is the main screen based on the codebase</p>
+
+<div class="mockup" style="max-width: 900px; margin: 0 auto;">
+  <div class="mockup-header" style="background: #000; color: #fff; border-bottom: 1px solid #222;">
+    <div style="display:flex; align-items:center; gap:12px; padding: 8px 16px;">
+      <span style="font-weight:bold; background: linear-gradient(135deg, #3b82f6, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">MuSync</span>
+      <span style="color:#666; font-size:13px;">Dashboard</span>
+      <span style="color:#666; font-size:13px;">Sync</span>
+      <span style="color:#666; font-size:13px;">Scheduler</span>
+      <span style="margin-left:auto; color:#666; font-size:13px;">Settings</span>
+    </div>
+  </div>
+
+  <div class="mockup-body" style="background: #000; color: #fff; padding: 24px;">
+    <!-- Header -->
+    <div style="margin-bottom: 32px;">
+      <h1 style="font-size: 48px; font-weight: 900; margin: 0; background: linear-gradient(135deg, #fff, #666); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Dashboard</h1>
+      <p style="color: #9ca3af; margin: 8px 0 0 0;">Monitor and manage your sync operations</p>
+    </div>
+
+    <!-- Active Sync Banner -->
+    <div style="margin-bottom: 32px; padding: 24px; border-radius: 16px; border: 1px solid rgba(59,130,246,0.3); background: linear-gradient(135deg, rgba(59,130,246,0.1), rgba(168,85,247,0.1), rgba(236,72,153,0.1));">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:16px;">
+          <div style="width:16px;height:16px;background:#60a5fa;border-radius:50%;box-shadow:0 0 0 4px rgba(96,165,250,0.3);"></div>
+          <div>
+            <div style="color:#60a5fa; font-weight:bold; font-size:20px;">Sync in Progress</div>
+            <div style="color:#9ca3af; font-size:14px;">Spotify → YT Music</div>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:24px;">
+          <div style="text-align:right;">
+            <div style="color:#9ca3af; font-size:12px; text-transform:uppercase; letter-spacing:1px;">Progress</div>
+            <div style="color:#fff; font-weight:bold; font-size:24px;">45%</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="color:#9ca3af; font-size:12px; text-transform:uppercase; letter-spacing:1px;">Tracks</div>
+            <div style="color:#34d399; font-weight:bold; font-size:18px;">+8</div>
+          </div>
+          <div style="width:192px; height:8px; background:rgba(255,255,255,0.1); border-radius:999px; overflow:hidden;">
+            <div style="width:45%; height:100%; background:linear-gradient(90deg, #3b82f6, #a855f7); border-radius:999px;"></div>
+          </div>
+        </div>
+      </div>
+      <!-- NEW: Live display row -->
+      <div style="margin-top:16px; padding-top:16px; border-top:1px solid rgba(59,130,246,0.2); display:flex; align-items:center; gap:16px;">
+        <div style="width:48px; height:48px; border-radius:8px; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; flex-shrink:0;">🎵</div>
+        <div style="min-width:0;">
+          <div style="color:#9ca3af; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Playlist: <span style="color:#fff;">Chill Vibes</span></div>
+          <div style="color:#d1d5db; font-size:14px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"><span style="color:#60a5fa;">→</span> Now: <span style="color:#fff; font-weight:500;">Breathe</span> <span style="color:#9ca3af;">— Artist Name</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:40px;">
+      <div style="padding:24px; border-radius:16px; border:1px solid rgba(255,255,255,0.1); background:linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));">
+        <div style="color:#9ca3af; font-size:14px; margin-bottom:4px;">Total Syncs</div>
+        <div style="font-size:36px; font-weight:900; color:#fff;">12</div>
+      </div>
+      <div style="padding:24px; border-radius:16px; border:1px solid rgba(52,211,153,0.2); background:linear-gradient(135deg, rgba(52,211,153,0.1), rgba(52,211,153,0.02));">
+        <div style="color:rgba(52,211,153,0.7); font-size:14px; margin-bottom:4px;">Successful</div>
+        <div style="font-size:36px; font-weight:900; color:#34d399;">10</div>
+      </div>
+      <div style="padding:24px; border-radius:16px; border:1px solid rgba(239,68,68,0.2); background:linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.02));">
+        <div style="color:rgba(239,68,68,0.7); font-size:14px; margin-bottom:4px;">Failed</div>
+        <div style="font-size:36px; font-weight:900; color:#ef4444;">1</div>
+      </div>
+      <div style="padding:24px; border-radius:16px; border:1px solid rgba(59,130,246,0.2); background:linear-gradient(135deg, rgba(59,130,246,0.1), rgba(59,130,246,0.02));">
+        <div style="color:rgba(59,130,246,0.7); font-size:14px; margin-bottom:4px;">Running</div>
+        <div style="font-size:36px; font-weight:900; color:#60a5fa;">1</div>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div style="display:flex; gap:8px; margin-bottom:24px;">
+      <div style="padding:8px 16px; border-radius:12px; font-size:14px; font-weight:500; background:rgba(255,255,255,0.1); color:#fff; border:1px solid rgba(255,255,255,0.2);">All <span style="opacity:0.6; margin-left:8px;">12</span></div>
+      <div style="padding:8px 16px; border-radius:12px; font-size:14px; font-weight:500; color:#9ca3af;">Success <span style="opacity:0.6; margin-left:8px;">10</span></div>
+      <div style="padding:8px 16px; border-radius:12px; font-size:14px; font-weight:500; color:#9ca3af;">Failed <span style="opacity:0.6; margin-left:8px;">1</span></div>
+      <div style="padding:8px 16px; border-radius:12px; font-size:14px; font-weight:500; color:#9ca3af;">Running <span style="opacity:0.6; margin-left:8px;">1</span></div>
+    </div>
+
+    <!-- Sync History Table -->
+    <div style="border-radius:16px; overflow:hidden; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05);">
+      <div style="padding:24px; border-bottom:1px solid rgba(255,255,255,0.1);">
+        <h2 style="font-size:20px; font-weight:bold; margin:0;">Sync History</h2>
+      </div>
+      <div style="padding:0;">
+        <!-- Row 1 -->
+        <div style="padding:24px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:16px;">
+            <div style="padding:4px 12px; border-radius:8px; font-size:12px; font-weight:bold; text-transform:uppercase; letter-spacing:1px; border:1px solid; background:rgba(52,211,153,0.1); border-color:rgba(52,211,153,0.3); color:#34d399;">success</div>
+            <div>
+              <div style="font-weight:600;">Spotify → YT Music</div>
+              <div style="color:#6b7280; font-size:14px; margin-top:2px;">15 added • 2 failed • 17 total</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="color:#9ca3af; font-size:14px;">5m ago</div>
+            <div style="color:#6b7280; font-size:12px;">Duration: 300s</div>
+          </div>
+        </div>
+        <!-- Row 2 -->
+        <div style="padding:24px; display:flex; align-items:center; justify-content:space-between;">
+          <div style="display:flex; align-items:center; gap:16px;">
+            <div style="padding:4px 12px; border-radius:8px; font-size:12px; font-weight:bold; text-transform:uppercase; letter-spacing:1px; border:1px solid; background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.3); color:#ef4444;">failed</div>
+            <div>
+              <div style="font-weight:600;">YT Music → Spotify</div>
+              <div style="color:#6b7280; font-size:14px; margin-top:2px;">0 added • 5 failed • 5 total</div>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="color:#9ca3af; font-size:14px;">2h ago</div>
+            <div style="color:#ef4444; font-size:12px; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="API rate limit exceeded">API rate limit exceeded</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-top:32px;">
+      <div style="padding:24px; border-radius:16px; border:1px solid rgba(52,211,153,0.2); background:linear-gradient(135deg, rgba(52,211,153,0.1), transparent);">
+        <div style="font-size:24px; margin-bottom:8px;">🔄</div>
+        <div style="font-weight:bold; margin-bottom:4px;">Quick Sync</div>
+        <div style="color:#9ca3af; font-size:14px;">Spotify → YT Music</div>
+      </div>
+      <div style="padding:24px; border-radius:16px; border:1px solid rgba(239,68,68,0.2); background:linear-gradient(135deg, rgba(239,68,68,0.1), transparent);">
+        <div style="font-size:24px; margin-bottom:8px;">🔄</div>
+        <div style="font-weight:bold; margin-bottom:4px;">Quick Sync</div>
+        <div style="color:#9ca3af; font-size:14px;">YT Music → Spotify</div>
+      </div>
+      <div style="padding:24px; border-radius:16px; border:1px solid rgba(59,130,246,0.2); background:linear-gradient(135deg, rgba(59,130,246,0.1), transparent);">
+        <div style="font-size:24px; margin-bottom:8px;">⏰</div>
+        <div style="font-weight:bold; margin-bottom:4px;">Auto Sync</div>
+        <div style="color:#9ca3af; font-size:14px;">Set up scheduled syncs</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="subtitle" style="text-align:center; margin-top:24px;">This is the Dashboard you just added the live banner to.</p>

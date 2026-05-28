@@ -10,18 +10,18 @@ export default function Auth({ authStatus, onAuthChange }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-unit-2">
       <button
         onClick={handleConnectSpotify}
-        className={`w-full p-4 rounded-xl transition-all ${
+        className={`w-full px-unit-3 py-unit-3 border transition-colors text-left ${
           authStatus.spotify
-            ? 'bg-green-500/20 border border-green-500/50'
-            : 'bg-white/5 border border-white/10 hover:bg-white/10'
+            ? 'border-white/30 bg-white/[0.03]'
+            : 'border-outline-variant hover:border-white/30'
         }`}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-3 h-3 rounded-full bg-green-500" />
-          <span className="font-medium">
+        <div className="flex items-center gap-unit-2">
+          <div className={`w-2 h-2 ${authStatus.spotify ? 'bg-success' : 'bg-outline'}`} />
+          <span className="text-xs font-medium">
             {authStatus.spotify ? 'Spotify Connected' : 'Connect Spotify'}
           </span>
         </div>
@@ -29,16 +29,16 @@ export default function Auth({ authStatus, onAuthChange }) {
 
       <button
         onClick={handleConnectYTMusic}
-        className={`w-full p-4 rounded-xl transition-all ${
+        className={`w-full px-unit-3 py-unit-3 border transition-colors text-left ${
           authStatus.ytmusic
-            ? 'bg-red-500/20 border border-red-500/50'
-            : 'bg-white/5 border border-white/10 hover:bg-white/10'
+            ? 'border-white/30 bg-white/[0.03]'
+            : 'border-outline-variant hover:border-white/30'
         }`}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-3 h-3 rounded-full bg-red-500" />
-          <span className="font-medium">
-            {authStatus.ytmusic ? 'YouTube Music Connected' : 'Connect YouTube Music'}
+        <div className="flex items-center gap-unit-2">
+          <div className={`w-2 h-2 ${authStatus.ytmusic ? 'bg-success' : 'bg-outline'}`} />
+          <span className="text-xs font-medium">
+            {authStatus.ytmusic ? 'YT Music Connected' : 'Connect YT Music'}
           </span>
         </div>
       </button>

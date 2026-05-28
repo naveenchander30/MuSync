@@ -1,6 +1,6 @@
 import requests
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from backend.database import db, Credential
 from backend.auth.encryption import encryptor
 from backend.config import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
@@ -25,7 +25,7 @@ class TokenManager:
             credential.refresh_token_encrypted = encrypted_token
             credential.access_token_expiry = access_token_expiry
             credential.scope = scope
-            credential.updated_at = datetime.utcnow()
+            credential.updated_at = datetime.now(timezone.utc).replace(tzinfo=None)
         else:
             credential = Credential(
                 user_id=user_id,
@@ -66,7 +66,7 @@ class TokenManager:
         
         # Token valid if expiry > 5 minutes from now
         expiry_buffer = timedelta(minutes=5)
-        return credential.access_token_expiry > (datetime.utcnow() - expiry_buffer)
+        return credential.access_token_expiry > (datetime.now(timezone.utc).replace(tzinfo=None) - expiry_buffer)
     
     @staticmethod
     def refresh_spotify_token(user_id: str):
@@ -95,7 +95,7 @@ class TokenManager:
         access_token = data["access_token"]
         expires_in = data.get("expires_in", 3600)
         new_refresh_token = data.get("refresh_token", refresh_token)
-        expiry = datetime.utcnow() + timedelta(seconds=expires_in)
+        expiry = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=expires_in)
         
         # Update credential
         TokenManager.save_credential(

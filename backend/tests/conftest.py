@@ -11,6 +11,7 @@ def app():
     db_fd, db_path = tempfile.mkstemp()
     
     os.environ['DATABASE_URL'] = f'sqlite:///{db_path}'
+    os.environ['SECRET_KEY'] = 'test-secret-key'
     os.environ['MASTER_PASSWORD'] = 'test_password'
     os.environ['SPOTIFY_CLIENT_ID'] = 'test_client_id'
     os.environ['SPOTIFY_CLIENT_SECRET'] = 'test_client_secret'

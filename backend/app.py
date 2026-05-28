@@ -1,6 +1,6 @@
 from flask import Flask
 from flask_cors import CORS
-from backend.config import DEBUG, PORT
+from backend.config import DEBUG, PORT, SECRET_KEY
 from backend.database import db, init_db
 from backend.database.models import User
 from backend.auth.routes import auth_bp
@@ -15,6 +15,9 @@ def create_app():
     
     # Enable CORS
     CORS(app, resources={r"/api/*": {"origins": "*"}, r"/auth/*": {"origins": "*"}})
+    
+    # Session secret key
+    app.secret_key = SECRET_KEY
     
     # Setup logging
     logger = setup_logging(app)

@@ -4,7 +4,7 @@ from backend.database.models import (
     User, Credential, SyncJob, FailedTrack,
     PlaylistSnapshot, ScheduledJob, ActivityLog
 )
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class TestUserModel:
@@ -45,7 +45,7 @@ class TestCredentialModel:
                 user_id='test_user',
                 service='spotify',
                 refresh_token_encrypted='encrypted_token',
-                access_token_expiry=datetime.utcnow()
+                access_token_expiry=datetime.now(timezone.utc).replace(tzinfo=None)
             )
             db.session.add(cred)
             db.session.commit()
@@ -124,7 +124,7 @@ class TestSyncJobModel:
             assert job.status == 'running'
             
             job.status = 'success'
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc).replace(tzinfo=None)
             db.session.commit()
             assert job.status == 'success'
 

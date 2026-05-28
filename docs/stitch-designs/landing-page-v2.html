@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MuSync | Precision Music Synchronization</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Geist Font simulation via Inter/System sans for the technical look as requested -->
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        :root {
+            --font-geist: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        body {
+            font-family: var(--font-geist);
+            background-color: #000000;
+            color: #FFFFFF;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .border-precision {
+            border-width: 1px;
+            border-color: #222222;
+        }
+        .active-indicator {
+            border-left: 2px solid #FFFFFF;
+        }
+        /* Custom scrollbar for technical aesthetic */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #000000;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #222222;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #444444;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface": "#131313",
+                      "inverse-primary": "#5d5f5f",
+                      "error": "#ffb4ab",
+                      "tertiary-fixed": "#e2e2e2",
+                      "outline": "#8e9192",
+                      "on-secondary-fixed": "#1b1c1c",
+                      "surface-container-lowest": "#0e0e0e",
+                      "primary-container": "#e2e2e2",
+                      "surface-container-high": "#2a2a2a",
+                      "error-container": "#93000a",
+                      "on-secondary-fixed-variant": "#474746",
+                      "on-background": "#e2e2e2",
+                      "on-tertiary-fixed-variant": "#454747",
+                      "on-surface-variant": "#c4c7c8",
+                      "tertiary-fixed-dim": "#c6c6c7",
+                      "on-tertiary": "#2f3131",
+                      "surface-container": "#1f1f1f",
+                      "inverse-on-surface": "#303030",
+                      "surface-dim": "#131313",
+                      "surface-bright": "#393939",
+                      "on-primary": "#2f3131",
+                      "inverse-surface": "#e2e2e2",
+                      "on-error": "#690005",
+                      "on-secondary-container": "#b7b5b4",
+                      "secondary-fixed": "#e5e2e1",
+                      "surface-tint": "#c6c6c7",
+                      "outline-variant": "#444748",
+                      "tertiary-container": "#e2e2e2",
+                      "on-tertiary-container": "#636565",
+                      "on-error-container": "#ffdad6",
+                      "on-primary-fixed": "#1a1c1c",
+                      "primary-fixed": "#e2e2e2",
+                      "on-surface": "#e2e2e2",
+                      "background": "#131313",
+                      "primary": "#ffffff",
+                      "secondary-fixed-dim": "#c8c6c5",
+                      "on-secondary": "#303030",
+                      "surface-variant": "#353535",
+                      "secondary-container": "#474746",
+                      "secondary": "#c8c6c5",
+                      "tertiary": "#ffffff",
+                      "primary-fixed-dim": "#c6c6c7",
+                      "on-tertiary-fixed": "#1a1c1c",
+                      "on-primary-fixed-variant": "#454747",
+                      "on-primary-container": "#636565",
+                      "surface-container-highest": "#353535",
+                      "surface-container-low": "#1b1b1b"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0px",
+                      "lg": "0px",
+                      "xl": "0px",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "unit-2": "8px",
+                      "unit-12": "48px",
+                      "margin-desktop": "64px",
+                      "unit-1": "4px",
+                      "base": "4px",
+                      "unit-4": "16px",
+                      "gutter": "24px",
+                      "unit-8": "32px",
+                      "margin-mobile": "16px"
+              },
+              "fontFamily": {
+                      "label-md": ["JetBrains Mono"],
+                      "headline-lg": ["Inter"],
+                      "body-md": ["Inter"],
+                      "display-lg": ["Inter"],
+                      "label-sm": ["JetBrains Mono"],
+                      "headline-md": ["Inter"],
+                      "body-lg": ["Inter"],
+                      "headline-lg-mobile": ["Inter"]
+              },
+              "fontSize": {
+                      "label-md": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                      "headline-lg": ["40px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                      "display-lg": ["72px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                      "label-sm": ["12px", {"lineHeight": "1.4", "letterSpacing": "0.1em", "fontWeight": "500"}],
+                      "headline-md": ["24px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400"}],
+                      "headline-lg-mobile": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+              }
+            },
+          },
+        }
+      </script>
+</head>
+<body class="bg-black text-white">
+<!-- TopNavBar -->
+<nav class="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-outline-variant">
+<div class="flex justify-between items-center w-full px-margin-desktop py-unit-4 max-w-[1200px] mx-auto">
+<div class="text-headline-md font-headline-md font-bold text-primary tracking-tighter">MuSync</div>
+<div class="hidden md:flex gap-unit-8">
+<a class="text-primary font-bold border-b-2 border-primary pb-1 font-label-md text-label-md" href="#">Features</a>
+<a class="text-on-surface-variant font-label-md text-label-md hover:text-primary transition-colors duration-200" href="#">How it Works</a>
+<a class="text-on-surface-variant font-label-md text-label-md hover:text-primary transition-colors duration-200" href="#">Pricing</a>
+</div>
+<button class="bg-primary text-on-primary px-unit-4 py-unit-2 font-label-md text-label-md hover:opacity-80 transition-opacity">
+                Get Started
+            </button>
+</div>
+</nav>
+<main>
+<!-- Hero Section -->
+<section class="min-h-screen flex flex-col justify-center items-center text-center px-margin-mobile md:px-0 pt-unit-12">
+<div class="max-w-[800px]">
+<h1 class="font-display-lg text-display-lg mb-unit-4 animate-tighten">
+                    Sync your music.<br/>Seamlessly.
+                </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-unit-12 max-w-[600px] mx-auto">
+                    The most reliable way to move your playlists between Spotify and YouTube Music. Precision engineering for audiophiles who demand perfect library parity.
+                </p>
+<div class="flex flex-col md:flex-row gap-unit-4 justify-center">
+<button class="bg-white text-black px-unit-8 py-unit-4 font-label-md text-label-md hover:bg-on-surface-variant transition-colors border border-white">
+                        Connect Spotify
+                    </button>
+<button class="bg-transparent text-white px-unit-8 py-unit-4 font-label-md text-label-md border border-white hover:bg-white/10 transition-colors">
+                        Connect YouTube Music
+                    </button>
+</div>
+</div>
+<!-- Hero Abstract Visual -->
+<div class="mt-unit-12 w-full max-w-[1000px] aspect-video border border-outline-variant relative overflow-hidden group">
+<div class="absolute inset-0 bg-gradient-to-b from-transparent to-black z-10"></div>
+<img class="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-1000" data-alt="A macro photograph of high-end audio hardware with glowing level indicators in a dark room. The lighting is low-key with sharp white highlights on metallic surfaces. The color palette is strictly black and white, conveying a sense of technical precision and premium engineering. The atmosphere is quiet, focused, and sophisticated." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKkhrSY257FHvTEaXgK7zNtw5HZ-iUcXVP9iUGax5xraqQB5bMFskV9N-_YzciSGJt4kN_GRgQxBrwQ3BQ1yG3YYJ8Zh3PUtZH1jUmGf2CTr7q618YD9h-cWRiVLvwSyWtjDJmS2ge4lyCTNMK0QPZ_X9yv2cjAaVs1E3wd_I8GGRVdC1jWati12yUrQmx0kacpuwUOJ4OYqx_6dtY5cbjORVOTtOfzfBMTIA4_a31Ji3JCk-1yr6fHEmm7_NkbCuqzbzW9eERFE8"/>
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex gap-unit-4">
+<div class="w-[1px] h-32 bg-white/20 animate-pulse"></div>
+<div class="w-[1px] h-32 bg-white animate-pulse" style="animation-delay: 200ms"></div>
+<div class="w-[1px] h-32 bg-white/20 animate-pulse" style="animation-delay: 400ms"></div>
+</div>
+</div>
+</section>
+<!-- Stats Row -->
+<section class="border-y border-outline-variant py-unit-12">
+<div class="max-w-[1200px] mx-auto px-margin-desktop grid grid-cols-1 md:grid-cols-3 gap-unit-8 text-center md:text-left">
+<div>
+<div class="font-display-lg text-headline-lg text-white mb-unit-1">10K+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant tracking-widest uppercase">Active Users</div>
+</div>
+<div>
+<div class="font-display-lg text-headline-lg text-white mb-unit-1">50K+</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant tracking-widest uppercase">Playlists Synced</div>
+</div>
+<div>
+<div class="font-display-lg text-headline-lg text-white mb-unit-1">99.9%</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant tracking-widest uppercase">Accuracy</div>
+</div>
+</div>
+</section>
+<!-- Features Section -->
+<section class="py-unit-12 px-margin-desktop max-w-[1200px] mx-auto">
+<h2 class="font-headline-lg text-headline-lg mb-unit-12 text-center md:text-left">Core Capabilities</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-unit-8">
+<!-- Feature Card 1 -->
+<div class="border border-outline-variant p-unit-8 relative active-indicator group hover:bg-white/5 transition-colors">
+<div class="mb-unit-4">
+<span class="material-symbols-outlined text-white text-3xl">sync_alt</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-unit-2">Bi-Directional Sync</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                        Move libraries between platforms instantly. Changes made on one side propagate to the other with zero latency.
+                    </p>
+</div>
+<!-- Feature Card 2 -->
+<div class="border border-outline-variant p-unit-8 relative active-indicator group hover:bg-white/5 transition-colors">
+<div class="mb-unit-4">
+<span class="material-symbols-outlined text-white text-3xl">search_check</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-unit-2">Smart Track Matching</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                        Proprietary ISRC and metadata verification ensures the exact version of the track is found, every single time.
+                    </p>
+</div>
+<!-- Feature Card 3 -->
+<div class="border border-outline-variant p-unit-8 relative active-indicator group hover:bg-white/5 transition-colors">
+<div class="mb-unit-4">
+<span class="material-symbols-outlined text-white text-3xl">schedule</span>
+</div>
+<h3 class="font-headline-md text-headline-md mb-unit-2">Scheduled Syncs</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                        Set it and forget it. Automation engines monitor your favorites and keep your libraries mirrored on a custom interval.
+                    </p>
+</div>
+</div>
+</section>
+<!-- Aesthetic Divider Block -->
+<section class="py-unit-12">
+<div class="max-w-[1200px] mx-auto px-margin-desktop">
+<div class="border border-outline-variant p-unit-12 flex flex-col md:flex-row items-center justify-between gap-unit-8">
+<div>
+<h2 class="font-headline-md text-headline-md mb-unit-2">Ready for precision?</h2>
+<p class="font-body-md text-on-surface-variant">Your library, perfected across all platforms.</p>
+</div>
+<button class="bg-white text-black px-unit-12 py-unit-4 font-label-md text-label-md hover:bg-on-surface-variant transition-colors shrink-0">
+                        Start Transfer
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="border-t border-outline-variant">
+<div class="flex flex-col md:flex-row justify-between items-center w-full px-margin-desktop py-unit-8 max-w-[1200px] mx-auto gap-unit-4">
+<div class="flex flex-col gap-unit-1">
+<div class="text-label-md font-label-md font-bold text-primary uppercase tracking-widest">MuSync</div>
+<p class="font-label-sm text-label-sm text-on-surface-variant">© 2024 MuSync. Precision sync.</p>
+</div>
+<div class="flex gap-unit-6">
+<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors underline" href="#">Privacy Policy</a>
+<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors underline" href="#">Terms of Service</a>
+<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors underline" href="#">Support</a>
+<a class="text-on-surface-variant font-label-sm text-label-sm hover:text-primary transition-colors underline" href="#">Github</a>
+</div>
+</div>
+</footer>
+<script>
+        // Simple micro-interaction for feature cards
+        document.querySelectorAll('.active-indicator').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.borderColor = '#FFFFFF';
+                card.style.transition = 'all 0.3s ease';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.borderColor = '#444748';
+            });
+        });
+
+        // Horizontal scroll effect on scroll
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const heroImage = document.querySelector('img');
+            if (heroImage) {
+                heroImage.style.transform = `translateY(${scrolled * 0.1}px) scale(${1 + scrolled * 0.0001})`;
+            }
+        });
+    </script>
+</body></html>

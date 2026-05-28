@@ -3,7 +3,7 @@ from backend.database import db
 from backend.database.models import User, Credential
 from backend.auth.token_manager import TokenManager
 from backend.auth.encryption import encryptor
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 class TestTokenManager:
@@ -19,7 +19,7 @@ class TestTokenManager:
                 user_id='test_user',
                 service='spotify',
                 refresh_token='refresh_token_123',
-                access_token_expiry=datetime.utcnow() + timedelta(hours=1)
+                access_token_expiry=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(hours=1)
             )
             
             cred = Credential.query.filter_by(
@@ -97,7 +97,7 @@ class TestTokenManager:
                 user_id='test_user',
                 service='spotify',
                 refresh_token='token',
-                access_token_expiry=datetime.utcnow() + timedelta(hours=1)
+                access_token_expiry=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(hours=1)
             )
             
             assert TokenManager.is_token_valid('test_user', 'spotify') == True
@@ -112,7 +112,7 @@ class TestTokenManager:
                 user_id='test_user',
                 service='spotify',
                 refresh_token='token',
-                access_token_expiry=datetime.utcnow() - timedelta(hours=1)
+                access_token_expiry=datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(hours=1)
             )
             
             assert TokenManager.is_token_valid('test_user', 'spotify') == False

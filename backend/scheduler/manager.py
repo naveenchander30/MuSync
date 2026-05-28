@@ -1,6 +1,6 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.interval import IntervalTrigger
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from backend.database import db, ScheduledJob, SyncJob
 from backend.sync.orchestrator import SyncOrchestrator
 
@@ -29,22 +29,22 @@ class SchedulerManager:
             id=scheduled_job.job_id,
             args=[scheduled_job.id],
             replace_existing=True,
-            next_run_time=datetime.utcnow() + timedelta(minutes=scheduled_job.schedule_interval_minutes)
+            next_run_time=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=scheduled_job.schedule_interval_minutes)
         )
         
         # Update next_run in database
-        scheduled_job.next_run = datetime.utcnow() + timedelta(minutes=scheduled_job.schedule_interval_minutes)
+        scheduled_job.next_run = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=scheduled_job.schedule_interval_minutes)
         db.session.commit()
     
     def _run_sync_job(self, scheduled_job_id: str):
         """Execute a scheduled sync job"""
-        scheduled_job = ScheduledJob.query.get(scheduled_job_id)
+        scheduled_job = db.session.get(ScheduledJob, scheduled_job_id)
         if not scheduled_job:
             return
         
         # Update last_run
-        scheduled_job.last_run = datetime.utcnow()
-        scheduled_job.next_run = datetime.utcnow() + timedelta(minutes=scheduled_job.schedule_interval_minutes)
+        scheduled_job.last_run = datetime.now(timezone.utc).replace(tzinfo=None)
+        scheduled_job.next_run = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=scheduled_job.schedule_interval_minutes)
         db.session.commit()
         
         # Create sync job
@@ -54,7 +54,7 @@ class SchedulerManager:
             source_service=scheduled_job.source_service,
             target_service=scheduled_job.target_service,
             status='running',
-            started_at=datetime.utcnow()
+            started_at=datetime.now(timezone.utc).replace(tzinfo=None)
         )
         db.session.add(sync_job)
         db.session.commit()
@@ -92,7 +92,7 @@ class SchedulerManager:
     
     def update_job(self, job_id: str, enabled: bool = None, interval_minutes: int = None):
         """Update an existing scheduled job"""
-        scheduled_job = ScheduledJob.query.get(job_id)
+        scheduled_job = db.session.get(ScheduledJob, job_id)
         if not scheduled_job:
             return None
         
@@ -121,7 +121,7 @@ class SchedulerManager:
     
     def delete_job(self, job_id: str) -> bool:
         """Delete a scheduled job"""
-        scheduled_job = ScheduledJob.query.get(job_id)
+        scheduled_job = db.session.get(ScheduledJob, job_id)
         if not scheduled_job:
             return False
         

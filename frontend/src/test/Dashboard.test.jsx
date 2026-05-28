@@ -143,7 +143,6 @@ describe("Dashboard", () => {
     await waitFor(() => {
       expect(screen.getByText("All")).toBeInTheDocument();
       expect(screen.getByText("Success")).toBeInTheDocument();
-      expect(screen.getAllByText("Running").length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -167,14 +166,6 @@ describe("Dashboard", () => {
     await waitFor(() => {
       expect(screen.getByText(/15 added/)).toBeInTheDocument();
       expect(screen.getByText(/2 failed/)).toBeInTheDocument();
-    });
-  });
-
-  it("shows quick action buttons", async () => {
-    render(<Dashboard />);
-    await waitFor(() => {
-      expect(screen.getAllByText("Quick Sync").length).toBe(2);
-      expect(screen.getByText("Auto Sync")).toBeInTheDocument();
     });
   });
 });

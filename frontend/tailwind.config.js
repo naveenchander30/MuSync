@@ -4,45 +4,50 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: {
-          DEFAULT: "#1DB954",
-          dark: "#169c46",
-          light: "#1ed760",
-        },
-        accent: {
-          blue: "#3b82f6",
-          purple: "#8b5cf6",
-          pink: "#ec4899",
-        },
-        dark: {
-          50: "#2a2a2a",
-          100: "#1f1f1f",
-          200: "#171717",
-          300: "#0f0f0f",
-          400: "#0a0a0a",
-        },
+        surface: '#131313',
+        'surface-dim': '#0a0a0a',
+        'surface-bright': '#1f1f1f',
+        'surface-container': '#1a1a1a',
+        'surface-container-high': '#222222',
+        'on-surface': '#e2e2e2',
+        'on-surface-variant': '#666666',
+        outline: '#444444',
+        'outline-variant': '#222222',
+        primary: '#ffffff',
+        'on-primary': '#000000',
+        secondary: '#c8c6c5',
+        error: '#ef4444',
+        success: '#22c55e',
+        warning: '#f59e0b',
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        mono: ['JetBrains Mono', 'SF Mono', 'monospace'],
       },
-      animation: {
-        "fade-in": "fadeIn 0.5s ease-in",
-        "slide-up": "slideUp 0.5s ease-out",
-        float: "float 3s ease-in-out infinite",
+      fontSize: {
+        'display-lg': ['72px', { lineHeight: '1.1', letterSpacing: '-0.04em', fontWeight: '800' }],
+        'headline-lg': ['40px', { lineHeight: '1.2', letterSpacing: '-0.02em', fontWeight: '700' }],
+        'headline-md': ['24px', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '600' }],
+        'body-lg': ['18px', { lineHeight: '1.6', fontWeight: '400' }],
+        'body-md': ['16px', { lineHeight: '1.6', fontWeight: '400' }],
+        'label-md': ['14px', { lineHeight: '1.4', letterSpacing: '0.05em', fontWeight: '500' }],
+        'label-sm': ['12px', { lineHeight: '1.4', letterSpacing: '0.1em', fontWeight: '500' }],
       },
-      keyframes: {
-        fadeIn: {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
-        },
-        slideUp: {
-          "0%": { transform: "translateY(20px)", opacity: "0" },
-          "100%": { transform: "translateY(0)", opacity: "1" },
-        },
-        float: {
-          "0%, 100%": { transform: "translateY(0px)" },
-          "50%": { transform: "translateY(-10px)" },
-        },
+      spacing: {
+        'unit-1': '4px',
+        'unit-2': '8px',
+        'unit-4': '16px',
+        'unit-6': '24px',
+        'unit-8': '32px',
+        'unit-12': '48px',
+        'unit-16': '64px',
+      },
+      borderRadius: {
+        DEFAULT: '0px',
+        none: '0px',
+      },
+      borderWidth: {
+        DEFAULT: '1px',
       },
     },
   },

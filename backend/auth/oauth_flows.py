@@ -1,15 +1,11 @@
 import requests
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 from google_auth_oauthlib.flow import Flow
 from flask import redirect, session, current_app
 
-from backend.config import (
-    AUTH_BASE_URL, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET,
-    GOOGLE_OAUTH_CLIENT_ID, GOOGLE_OAUTH_CLIENT_SECRET,
-    SPOTIFY_SCOPES, YT_SCOPES
-)
+from backend import config
 from backend.auth.token_manager import TokenManager
 from backend.database import db, User
 
@@ -24,10 +20,10 @@ class OAuthFlows:
         session['spotify_state'] = state
         
         params = {
-            "client_id": SPOTIFY_CLIENT_ID,
+            "client_id": config.SPOTIFY_CLIENT_ID,
             "response_type": "code",
-            "redirect_uri": f"{AUTH_BASE_URL}/auth/spotify/callback",
-            "scope": SPOTIFY_SCOPES,
+            "redirect_uri": f"{config.AUTH_BASE_URL}/auth/spotify/callback",
+            "scope": config.SPOTIFY_SCOPES,
             "state": state
         }
         
@@ -41,17 +37,19 @@ class OAuthFlows:
             raise ValueError("Invalid OAuth state")
         
         # Exchange code for tokens
+        import base64
+        client_creds = f"{config.SPOTIFY_CLIENT_ID}:{config.SPOTIFY_CLIENT_SECRET}"
+        encoded_creds = base64.b64encode(client_creds.encode()).decode()
+        
         resp = requests.post(
             "https://accounts.spotify.com/api/token",
             headers={
-                "Authorization": "Basic " + requests.auth.HTTPBasicAuth(
-                    SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
-                ).auth_header,
+                "Authorization": f"Basic {encoded_creds}",
             },
             data={
                 "grant_type": "authorization_code",
                 "code": authorization_code,
-                "redirect_uri": f"{AUTH_BASE_URL}/auth/spotify/callback"
+                "redirect_uri": f"{config.AUTH_BASE_URL}/auth/spotify/callback"
             }
         )
         
@@ -62,8 +60,8 @@ class OAuthFlows:
         refresh_token = data["refresh_token"]
         access_token = data["access_token"]
         expires_in = data.get("expires_in", 3600)
-        scope = data.get("scope", SPOTIFY_SCOPES)
-        expiry = datetime.utcnow() + timedelta(seconds=expires_in)
+        scope = data.get("scope", config.SPOTIFY_SCOPES)
+        expiry = datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(seconds=expires_in)
         
         # Save credential
         TokenManager.save_credential(
@@ -82,18 +80,18 @@ class OAuthFlows:
         # Create Google OAuth flow
         client_config = {
             "web": {
-                "client_id": GOOGLE_OAUTH_CLIENT_ID,
-                "client_secret": GOOGLE_OAUTH_CLIENT_SECRET,
+                "client_id": config.GOOGLE_OAUTH_CLIENT_ID,
+                "client_secret": config.GOOGLE_OAUTH_CLIENT_SECRET,
                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                 "token_uri": "https://oauth2.googleapis.com/token",
-                "redirect_uris": [f"{AUTH_BASE_URL}/auth/ytmusic/callback"]
+                "redirect_uris": [f"{config.AUTH_BASE_URL}/auth/ytmusic/callback"]
             }
         }
         
         flow = Flow.from_client_config(
             client_config,
-            scopes=YT_SCOPES,
-            redirect_uri=f"{AUTH_BASE_URL}/auth/ytmusic/callback"
+            scopes=config.YT_SCOPES,
+            redirect_uri=f"{config.AUTH_BASE_URL}/auth/ytmusic/callback"
         )
         
         authorization_url, state = flow.authorization_url(
@@ -115,19 +113,19 @@ class OAuthFlows:
         # Create Google OAuth flow
         client_config = {
             "web": {
-                "client_id": GOOGLE_OAUTH_CLIENT_ID,
-                "client_secret": GOOGLE_OAUTH_CLIENT_SECRET,
+                "client_id": config.GOOGLE_OAUTH_CLIENT_ID,
+                "client_secret": config.GOOGLE_OAUTH_CLIENT_SECRET,
                 "auth_uri": "https://accounts.google.com/o/oauth2/auth",
                 "token_uri": "https://oauth2.googleapis.com/token",
-                "redirect_uris": [f"{AUTH_BASE_URL}/auth/ytmusic/callback"]
+                "redirect_uris": [f"{config.AUTH_BASE_URL}/auth/ytmusic/callback"]
             }
         }
         
         flow = Flow.from_client_config(
             client_config,
-            scopes=YT_SCOPES,
+            scopes=config.YT_SCOPES,
             state=state,
-            redirect_uri=f"{AUTH_BASE_URL}/auth/ytmusic/callback"
+            redirect_uri=f"{config.AUTH_BASE_URL}/auth/ytmusic/callback"
         )
         
         flow.fetch_token(authorization_response=authorization_response)
