@@ -1,11 +1,32 @@
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from backend.database import db, SyncJob, FailedTrack, PlaylistSnapshot
 from backend.sync.spotify_client import SpotifyClient
 from backend.sync.ytmusic_client import YTMusicClient
 from backend.sync.matcher import find_best_match
 from backend.sync.checkpoint import CheckpointManager
+
+
+def normalize_ytmusic_track(track):
+    """Convert YT Music track format to matcher format"""
+    return {
+        'name': track.get('title', track.get('name', '')),
+        'artists': [a.get('name', '') for a in track.get('artists', []) if isinstance(a, dict)],
+        'duration_ms': int(track.get('durationMs', track.get('duration_ms', 0))),
+        'videoId': track.get('videoId'),
+        'videoType': track.get('videoType'),
+    }
+
+
+def normalize_spotify_track(track):
+    """Convert Spotify track format to matcher format"""
+    return {
+        'name': track.get('name', track.get('title', '')),
+        'artists': [a.get('name', '') for a in track.get('artists', []) if isinstance(a, dict)],
+        'duration_ms': track.get('duration_ms', int(track.get('durationMs', 0))),
+        'uri': track.get('uri'),
+    }
 
 
 class SyncOrchestrator:
@@ -21,7 +42,7 @@ class SyncOrchestrator:
     
     def log(self, message: str, level: str = "INFO"):
         """Add log message"""
-        timestamp = datetime.utcnow().strftime('%H:%M:%S')
+        timestamp = datetime.now(timezone.utc).replace(tzinfo=None).strftime('%H:%M:%S')
         log_entry = {
             "timestamp": timestamp,
             "level": level,
@@ -39,7 +60,7 @@ class SyncOrchestrator:
         try:
             # Get or create sync job
             if job_id:
-                job = SyncJob.query.get(job_id)
+                job = db.session.get(SyncJob, job_id)
             else:
                 job = SyncJob(
                     user_id=self.user_id,
@@ -47,7 +68,7 @@ class SyncOrchestrator:
                     source_service='spotify',
                     target_service='ytmusic',
                     status='running',
-                    started_at=datetime.utcnow()
+                    started_at=datetime.now(timezone.utc).replace(tzinfo=None)
                 )
                 db.session.add(job)
                 db.session.commit()
@@ -68,6 +89,9 @@ class SyncOrchestrator:
                     continue  # Skip already processed playlists
                 
                 self.log(f"Processing playlist: {playlist['name']}")
+                job.current_playlist_name = playlist['name']
+                job.current_track_name = None
+                job.current_track_image_url = None
                 job.progress_percentage = int((playlist_idx / len(playlists)) * 100)
                 db.session.commit()
                 
@@ -103,6 +127,12 @@ class SyncOrchestrator:
                     track = track_data.get('track', {})
                     if not track:
                         continue
+
+                    job.current_track_name = track.get('name', '')
+                    job.current_track_artist = ", ".join([a.get('name', '') for a in track.get('artists', [])])
+                    album = track.get('album', {})
+                    images = album.get('images', [])
+                    job.current_track_image_url = images[0].get('url') if images else None
                     
                     # Extract track info
                     query_track = {
@@ -124,10 +154,11 @@ class SyncOrchestrator:
                             if r.get('videoType') == 'MUSIC_VIDEO_TYPE_ATV' or r.get('videoId')
                         ]
                         
-                        # Find best match
+                        # Normalize and find best match
+                        normalized_results = [normalize_ytmusic_track(r) for r in video_results]
                         best_match = find_best_match(
                             query_track,
-                            video_results,
+                            normalized_results,
                             threshold=0.90
                         )
                         
@@ -178,7 +209,7 @@ class SyncOrchestrator:
             
             # Complete job
             job.status = 'success'
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc).replace(tzinfo=None)
             job.progress_percentage = 100
             db.session.commit()
             
@@ -188,7 +219,7 @@ class SyncOrchestrator:
             self.log(f"Sync failed: {str(e)}", "ERROR")
             job.status = 'failed'
             job.error_message = str(e)
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc).replace(tzinfo=None)
             db.session.commit()
         
         finally:
@@ -203,7 +234,7 @@ class SyncOrchestrator:
         # For brevity, implementing the skeleton
         try:
             if job_id:
-                job = SyncJob.query.get(job_id)
+                job = db.session.get(SyncJob, job_id)
             else:
                 job = SyncJob(
                     user_id=self.user_id,
@@ -211,7 +242,7 @@ class SyncOrchestrator:
                     source_service='ytmusic',
                     target_service='spotify',
                     status='running',
-                    started_at=datetime.utcnow()
+                    started_at=datetime.now(timezone.utc).replace(tzinfo=None)
                 )
                 db.session.add(job)
                 db.session.commit()
@@ -226,6 +257,9 @@ class SyncOrchestrator:
             # Process each playlist
             for playlist_idx, playlist in enumerate(playlists):
                 self.log(f"Processing playlist: {playlist.get('title', 'Unknown')}")
+                job.current_playlist_name = playlist.get('title', 'Unknown')
+                job.current_track_name = None
+                job.current_track_image_url = None
                 job.progress_percentage = int((playlist_idx / len(playlists)) * 100)
                 db.session.commit()
                 
@@ -261,6 +295,11 @@ class SyncOrchestrator:
                         'artists': [a.get('name', '') for a in track_data.get('artists', [])],
                         'duration_ms': track_data.get('durationMs', track_data.get('duration_seconds', 0) * 1000)
                     }
+
+                    job.current_track_name = track_data.get('title', '')
+                    job.current_track_artist = ", ".join([a.get('name', '') for a in track_data.get('artists', [])])
+                    thumbnails = track_data.get('thumbnails', [])
+                    job.current_track_image_url = thumbnails[-1].get('url') if thumbnails else None
                     
                     try:
                         search_results = self.spotify.search_track(
@@ -270,9 +309,11 @@ class SyncOrchestrator:
                         
                         tracks_list = search_results.get('tracks', {}).get('items', [])
                         
+                        # Normalize and find best match
+                        normalized_results = [normalize_spotify_track(r) for r in tracks_list]
                         best_match = find_best_match(
                             query_track,
-                            tracks_list,
+                            normalized_results,
                             threshold=0.90
                         )
                         
@@ -311,7 +352,7 @@ class SyncOrchestrator:
                     db.session.commit()
             
             job.status = 'success'
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc).replace(tzinfo=None)
             job.progress_percentage = 100
             db.session.commit()
             
@@ -321,7 +362,7 @@ class SyncOrchestrator:
             self.log(f"Sync failed: {str(e)}", "ERROR")
             job.status = 'failed'
             job.error_message = str(e)
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(timezone.utc).replace(tzinfo=None)
             db.session.commit()
         
         finally:
