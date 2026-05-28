@@ -5,6 +5,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState({ total: 0, success: 0, failed: 0, running: 0 })
   const [recentJobs, setRecentJobs] = useState([])
   const [activeJob, setActiveJob] = useState(null)
+  const [imgError, setImgError] = useState(false)
   const [filter, setFilter] = useState('all')
   const [loading, setLoading] = useState(true)
 
@@ -21,6 +22,7 @@ export default function Dashboard() {
       
       const active = jobs.find(j => j.status === 'running' || j.status === 'pending')
       setActiveJob(active || null)
+      setImgError(false)
 
       const filtered = filter === 'all' 
         ? jobs 
@@ -138,10 +140,12 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="mt-4 pt-4 border-t border-blue-500/20 flex items-center gap-4">
-              {activeJob.current_track_image_url ? (
+              {activeJob.current_track_image_url && !imgError ? (
                 <img
                   src={activeJob.current_track_image_url}
                   alt="Album art"
+                  loading="lazy"
+                  onError={() => setImgError(true)}
                   className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
                 />
               ) : (
