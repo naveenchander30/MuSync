@@ -69,6 +69,62 @@ class TestJobEndpoints:
         response = client.get('/api/jobs/nonexistent_id')
         assert response.status_code == 404
     
+    def test_get_job_returns_live_sync_fields(self, client, app):
+        from backend.database import db
+        from backend.database.models import SyncJob
+        import uuid
+
+        with app.app_context():
+            job = SyncJob(
+                id=str(uuid.uuid4()),
+                user_id='test_user',
+                job_type='sync',
+                source_service='spotify',
+                target_service='ytmusic',
+                status='running',
+                current_playlist_name='Test Playlist',
+                current_track_name='Test Track',
+                current_track_artist='Test Artist',
+                current_track_image_url='https://example.com/art.jpg',
+            )
+            db.session.add(job)
+            db.session.commit()
+            job_id = job.id
+
+        response = client.get(f'/api/jobs/{job_id}')
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data['current_playlist_name'] == 'Test Playlist'
+        assert data['current_track_name'] == 'Test Track'
+        assert data['current_track_artist'] == 'Test Artist'
+        assert data['current_track_image_url'] == 'https://example.com/art.jpg'
+
+    def test_get_job_returns_null_live_fields_when_not_set(self, client, app):
+        from backend.database import db
+        from backend.database.models import SyncJob
+        import uuid
+
+        with app.app_context():
+            job = SyncJob(
+                id=str(uuid.uuid4()),
+                user_id='test_user',
+                job_type='sync',
+                source_service='spotify',
+                target_service='ytmusic',
+                status='pending',
+            )
+            db.session.add(job)
+            db.session.commit()
+            job_id = job.id
+
+        response = client.get(f'/api/jobs/{job_id}')
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data['current_playlist_name'] is None
+        assert data['current_track_name'] is None
+        assert data['current_track_artist'] is None
+        assert data['current_track_image_url'] is None
+
     def test_get_user_jobs_returns_empty_list(self, client):
         response = client.get('/api/jobs/user/test_user')
         assert response.status_code == 200
