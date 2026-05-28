@@ -1,5 +1,5 @@
 from .connection import db
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 class User(db.Model):
@@ -7,8 +7,8 @@ class User(db.Model):
     
     id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     username = db.Column(db.String(255), unique=True, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), onupdate=datetime.utcnow)
     
     credentials = db.relationship('Credential', backref='user', cascade='all, delete-orphan')
     sync_jobs = db.relationship('SyncJob', backref='user', cascade='all, delete-orphan')
@@ -26,8 +26,8 @@ class Credential(db.Model):
     refresh_token_encrypted = db.Column(db.Text, nullable=False)
     access_token_expiry = db.Column(db.DateTime)
     scope = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), onupdate=datetime.utcnow)
     last_refreshed_at = db.Column(db.DateTime)
     
     __table_args__ = (
@@ -44,7 +44,7 @@ class SyncJob(db.Model):
     source_service = db.Column(db.String(50), nullable=False)
     target_service = db.Column(db.String(50), nullable=False)
     status = db.Column(db.String(50), nullable=False, default='pending')
-    started_at = db.Column(db.DateTime, default=datetime.utcnow)
+    started_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     completed_at = db.Column(db.DateTime)
     total_playlists = db.Column(db.Integer, default=0)
     total_tracks = db.Column(db.Integer, default=0)
@@ -52,8 +52,12 @@ class SyncJob(db.Model):
     failed_tracks = db.Column(db.Integer, default=0)
     error_message = db.Column(db.Text)
     progress_percentage = db.Column(db.Integer, default=0)
+    current_playlist_name = db.Column(db.String(255), nullable=True)
+    current_track_name = db.Column(db.String(255), nullable=True)
+    current_track_artist = db.Column(db.String(255), nullable=True)
+    current_track_image_url = db.Column(db.Text, nullable=True)
     checkpoint_data = db.Column(db.JSON, default=dict)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     
     failed_track_records = db.relationship('FailedTrack', backref='sync_job', cascade='all, delete-orphan')
     activity_logs = db.relationship('ActivityLog', backref='sync_job')
@@ -68,8 +72,8 @@ class FailedTrack(db.Model):
     artist_names = db.Column(db.Text, nullable=False)
     reason = db.Column(db.String(255))
     attempt_count = db.Column(db.Integer, default=1)
-    last_attempted_at = db.Column(db.DateTime, default=datetime.utcnow)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    last_attempted_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
 
 
 class PlaylistSnapshot(db.Model):
@@ -81,7 +85,7 @@ class PlaylistSnapshot(db.Model):
     playlist_id = db.Column(db.String(255), nullable=False)
     playlist_name = db.Column(db.String(255), nullable=False)
     tracks = db.Column(db.JSON, default=list)
-    synced_at = db.Column(db.DateTime, default=datetime.utcnow)
+    synced_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     
     __table_args__ = (
         db.UniqueConstraint('user_id', 'service', 'playlist_id', name='uq_user_service_playlist'),
@@ -102,8 +106,8 @@ class ScheduledJob(db.Model):
     enabled = db.Column(db.Boolean, default=True)
     last_run = db.Column(db.DateTime)
     next_run = db.Column(db.DateTime)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), onupdate=datetime.utcnow)
 
 
 class ActivityLog(db.Model):
@@ -118,4 +122,4 @@ class ActivityLog(db.Model):
     sync_job_id = db.Column(db.String(36), db.ForeignKey('sync_jobs.id'))
     log_level = db.Column(db.String(20))
     message = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
