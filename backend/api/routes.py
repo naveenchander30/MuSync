@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 
 from backend.database import db, User, SyncJob, ActivityLog
 from backend.sync.orchestrator import SyncOrchestrator
@@ -53,7 +53,7 @@ def sync_spotify_to_ytmusic():
         source_service='spotify',
         target_service='ytmusic',
         status='pending',
-        started_at=datetime.utcnow()
+        started_at=datetime.now(timezone.utc).replace(tzinfo=None)
     )
     db.session.add(job)
     db.session.commit()
@@ -88,7 +88,7 @@ def sync_ytmusic_to_spotify():
         source_service='ytmusic',
         target_service='spotify',
         status='pending',
-        started_at=datetime.utcnow()
+        started_at=datetime.now(timezone.utc).replace(tzinfo=None)
     )
     db.session.add(job)
     db.session.commit()
@@ -110,7 +110,7 @@ def sync_ytmusic_to_spotify():
 @api_bp.route('/jobs/<job_id>', methods=['GET'])
 def get_job(job_id):
     """Get sync job status"""
-    job = SyncJob.query.get(job_id)
+    job = db.session.get(SyncJob, job_id)
     if not job:
         return jsonify({"error": "Job not found"}), 404
     
@@ -127,7 +127,11 @@ def get_job(job_id):
         "failed_tracks": job.failed_tracks,
         "started_at": job.started_at.isoformat() if job.started_at else None,
         "completed_at": job.completed_at.isoformat() if job.completed_at else None,
-        "error_message": job.error_message
+        "error_message": job.error_message,
+        "current_playlist_name": job.current_playlist_name,
+        "current_track_name": job.current_track_name,
+        "current_track_artist": job.current_track_artist,
+        "current_track_image_url": job.current_track_image_url,
     })
 
 
